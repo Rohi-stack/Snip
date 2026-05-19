@@ -1,0 +1,16 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.page {
+  padding: 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
