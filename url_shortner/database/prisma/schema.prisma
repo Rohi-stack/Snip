@@ -55,6 +55,7 @@ model User {
   authProvider   AuthProvider @map("auth_provider")
   googleId       String?      @unique @map("google_id")
   passwordHash   String?      @map("password_hash") @db.Text
+  stripeCustomerId String?    @unique @map("stripe_customer_id")
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
@@ -144,11 +145,12 @@ model Click {
 }
 
 model Subscription {
-  id                String             @id @default(uuid()) @db.Uuid
-  userId            String             @map("user_id") @db.Uuid
-  razorpayPaymentId String             @unique @map("razorpay_payment_id")
-  amount            Int
-  currency          String             @db.Char(3)
+  id                   String             @id @default(uuid()) @db.Uuid
+  userId               String             @map("user_id") @db.Uuid
+  stripeSessionId      String             @unique @map("stripe_session_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  amount               Int
+  currency             String             @db.Char(3)
   status            SubscriptionStatus @default(PENDING)
   startsAt          DateTime           @map("starts_at") @db.Timestamptz(6)
   expiresAt         DateTime           @map("expires_at") @db.Timestamptz(6)

@@ -63,19 +63,24 @@ export class AuthService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name }),
     });
-    const json = await res.json();
+    const json = await this._safeJson(res);
     if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
     // After register, auto-login
     await this.login(email, password);
   }
 
   async login(email: string, password: string): Promise<void> {
-    const res = await fetch(`${BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const json = await res.json();
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    } catch (networkErr) {
+      throw new Error('Cannot reach the server. Please ensure the backend is running.');
+    }
+    const json = await this._safeJson(res);
     if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
 
     const { user, tokens } = json.data as { user: AuthUser; tokens: StoredTokens };
@@ -141,14 +146,31 @@ export class AuthService {
   private _loadTokens(): StoredTokens | null {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_TOKENS);
-      return raw ? (JSON.parse(raw) as StoredTokens) : null;
+      if (!raw || raw.trim() === '') return null;
+      return JSON.parse(raw) as StoredTokens;
     } catch { return null; }
   }
 
   private _loadUser(): AuthUser | null {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_USER);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
+      if (!raw || raw.trim() === '') return null;
+      return JSON.parse(raw) as AuthUser;
     } catch { return null; }
+  }
+
+  /**
+   * Safely parse JSON from a Response.
+   * Returns null (instead of throwing) if the body is empty or not valid JSON.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async _safeJson(res: Response): Promise<any> {
+    try {
+      const text = await res.text();
+      if (!text || text.trim() === '') return null;
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   }
 }

@@ -2,16 +2,18 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { UrlApiService, type UrlListItem } from '../../../services/url-api.service';
+import { UiStateService } from '../../../core/services/ui-state.service';
 
 @Component({
   selector: 'app-links',
   standalone: true,
-  imports: [RouterLink, DecimalPipe],
+  imports: [DecimalPipe],
   templateUrl: './links.html',
   styleUrl: './links.scss',
 })
 export class Links implements OnInit {
   private urlApi = inject(UrlApiService);
+  uiState = inject(UiStateService);
 
   loading = signal(true);
   errorMsg = signal<string | null>(null);

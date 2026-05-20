@@ -80,7 +80,7 @@ async function main() {
       passwordHash: hash,
       subscriptions: {
         create: {
-          razorpayPaymentId: `pay_test_${crypto.randomBytes(8).toString('hex')}`,
+          stripeSessionId: `cs_test_${crypto.randomBytes(8).toString('hex')}`,
           amount: 200,
           currency: 'INR',
           status: 'ACTIVE',
@@ -111,7 +111,7 @@ async function main() {
       passwordHash: hash,
       subscriptions: {
         create: {
-          razorpayPaymentId: `pay_test_${crypto.randomBytes(8).toString('hex')}`,
+          stripeSessionId: `cs_test_${crypto.randomBytes(8).toString('hex')}`,
           amount: 500,
           currency: 'INR',
           status: 'ACTIVE',

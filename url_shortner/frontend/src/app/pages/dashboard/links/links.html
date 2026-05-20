@@ -3,10 +3,6 @@
     <h1 class="page-title">Links</h1>
     <p class="page-subtitle">Manage your shortened URLs and track performance.</p>
   </div>
-  <a routerLink="/" class="btn btn--primary">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Create New Link
-  </a>
 </div>
 
 <div class="stats-grid">
@@ -75,15 +71,17 @@
               </tr>
             }
           </tbody>
+          <br>
         </table>
       </div>
+      <br>
     } @else if (links().length === 0) {
       <!-- Empty state -->
       <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        <p class="empty-state__title">No links created yet</p>
-        <p class="empty-state__sub">Shorten your first URL from the homepage or click the button above.</p>
-        <a routerLink="/" class="btn btn--primary">Create your first link</a>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.2" style="margin: 1rem 0 0 0.8rem;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <p class="empty-state__title" style="padding:1rem 1rem ;">No links created yet</p>
+        <p class="empty-state__sub" style="padding:0rem  1rem ;">Shorten your first URL from the homepage or click the button above.</p><br>
+        <button (click)="uiState.openCreateLinkModal()" class="btn btn--primary" style="margin-left:0.8rem ;">Create your first link</button>
       </div>
     } @else {
       <div class="table-responsive">

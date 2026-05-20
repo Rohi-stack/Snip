@@ -2,16 +2,18 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { AnalyticsApiService, type AnalyticsOverview, type AnalyticsPeriod } from '../../../services/analytics-api.service';
+import { UiStateService } from '../../../core/services/ui-state.service';
 
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, TitleCasePipe],
+  imports: [DecimalPipe, TitleCasePipe],
   templateUrl: './analytics.html',
   styleUrl: './analytics.scss',
 })
 export class Analytics implements OnInit {
   private analyticsApi = inject(AnalyticsApiService);
+  uiState = inject(UiStateService);
 
   loading = signal(true);
   errorMsg = signal<string | null>(null);

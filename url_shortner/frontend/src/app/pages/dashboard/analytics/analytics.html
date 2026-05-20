@@ -69,11 +69,11 @@
 
   @if (!loading() && !hasData()) {
     <!-- No data empty state for grid -->
-    <div class="empty-state" style="margin-top:2rem">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <p class="empty-state__title">No analytics yet</p>
-      <p class="empty-state__sub">Share your links to start seeing click data, device breakdown, and referrers here.</p>
-      <a routerLink="/" class="btn btn--primary">Create a link</a>
+    <div class="empty-state" style="margin-top:2rem; ">
+      <svg width="48" height="48" viewBox="0 0 24 24"  fill="none" stroke="var(--color-text-muted)" stroke-width="1.2"  style="margin:1rem 1rem ;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p class="empty-state__title" style="margin:1rem 1rem ;">No analytics yet</p>
+      <p class="empty-state__sub" style="margin:0 1rem ;">Share your links to start seeing click data, device breakdown, and referrers here.</p>
+      <button (click)="uiState.openCreateLinkModal()" class="btn btn--primary" style="margin:1.5rem 1rem ;">Create a link</button>
     </div>
   }
 

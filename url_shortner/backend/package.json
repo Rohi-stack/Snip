@@ -8,7 +8,7 @@
     "start": "node dist/server.js",
     "postinstall": "npm run prisma:generate",
     "prisma:generate": "prisma generate --schema=../database/prisma/schema.prisma",
-    "db:seed": "npx tsx ../testing/seed/test-users.ts",
+    "db:seed": "NODE_PATH=./node_modules npx tsx ../testing/seed/test-users.ts",
     "test": "vitest"
   },
   "dependencies": {
@@ -20,7 +20,8 @@
     "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.3",
     "qrcode": "^1.5.4",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "stripe": "^22.1.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
