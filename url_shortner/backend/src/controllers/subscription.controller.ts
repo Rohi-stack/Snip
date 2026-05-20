@@ -30,11 +30,13 @@ export const subscriptionController = {
 
   async getMySubscription(req: Request, res: Response): Promise<void> {
     if (!req.user) throw new AppError(HTTP.UNAUTHORIZED, 'User not authenticated', 'UNAUTHORIZED');
-    const isPremium = await subscriptionService.checkEntitlement(req.user.id);
+
+    const details = await subscriptionService.getSubscriptionDetails(req.user.id);
 
     res.status(HTTP.OK).json({
       success: true,
-      data: { isPremium }
+      data: details,
     });
-  }
+  },
 };
+

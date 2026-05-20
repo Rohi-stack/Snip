@@ -1,0 +1,38 @@
+<section class="faq" id="faq" aria-label="Frequently asked questions">
+  <div class="container faq__inner">
+
+    <div class="faq__header">
+      <h2 class="section-title">Frequently asked questions</h2>
+      <p class="section-sub">
+        Everything you need to know about Snip. Can't find what you're looking for?
+        <a href="mailto:hello@snip.ly" class="section-link">Email us.</a>
+      </p>
+    </div>
+
+    <div class="faq__list" role="list">
+      @for (item of faqs; track item.question; let i = $index) {
+        <div
+          class="faq__item"
+          [class.faq__item--open]="activeIndex() === i"
+          role="listitem"
+        >
+          <button
+            class="faq__question"
+            (click)="toggle(i)"
+            [attr.aria-expanded]="activeIndex() === i"
+            [id]="'faq-q-' + i"
+          >
+            <span>{{ item.question }}</span>
+            <svg class="faq__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq__answer" [attr.aria-labelledby]="'faq-q-' + i">
+            <p>{{ item.answer }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+</section>

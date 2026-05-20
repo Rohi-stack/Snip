@@ -8,6 +8,23 @@ import type { CreateOrderResponse, WebhookPayload } from '../types/subscription.
 const PREMIUM_PRICE_INR = 50000; // ₹500 in paise
 const SUBSCRIPTION_DAYS = 30;
 
+/** Derive a human-readable tier label from subscription amount (in paise). */
+function resolveTierLabel(amountPaise: number): string {
+  const rupees = amountPaise / 100;
+  if (rupees <= 2) return 'Starter';
+  if (rupees <= 5) return 'Premium';
+  return 'Premium';
+}
+
+export interface SubscriptionDetails {
+  isPremium: boolean;
+  tier?: string;
+  amount?: number;    // paise
+  currency?: string;
+  startsAt?: string;  // ISO
+  expiresAt?: string; // ISO
+}
+
 export const subscriptionService = {
   async createOrder(userId: string): Promise<CreateOrderResponse> {
     const existing = await subscriptionRepository.findActiveSubscriptionByUserId(userId);
@@ -74,8 +91,25 @@ export const subscriptionService = {
     }
   },
 
+  /** Returns full subscription details — or `{ isPremium: false }` for free users. */
+  async getSubscriptionDetails(userId: string): Promise<SubscriptionDetails> {
+    const sub = await subscriptionRepository.findActiveSubscriptionByUserId(userId);
+    if (!sub) return { isPremium: false };
+
+    return {
+      isPremium: true,
+      tier: resolveTierLabel(sub.amount),
+      amount: sub.amount,
+      currency: sub.currency,
+      startsAt: sub.startsAt.toISOString(),
+      expiresAt: sub.expiresAt.toISOString(),
+    };
+  },
+
+  /** Lightweight boolean check used by entitlement guards. */
   async checkEntitlement(userId: string): Promise<boolean> {
     const sub = await subscriptionRepository.findActiveSubscriptionByUserId(userId);
     return !!sub;
-  }
+  },
 };
+

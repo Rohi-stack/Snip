@@ -1,0 +1,126 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Analytics Overview</h1>
+    <p class="page-subtitle">Understand your audience and track link performance.</p>
+  </div>
+  <div class="header-actions">
+    <select class="input select-period">
+      <option>Last 7 days</option>
+      <option>Last 30 days</option>
+      <option>All time</option>
+    </select>
+    <button class="btn btn--ghost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+  </div>
+</div>
+
+<!-- Main Chart Area -->
+<div class="chart-section">
+  <div class="chart-header">
+    <h2 class="chart-title">Clicks over time</h2>
+    <div class="chart-total">2,115 <span>Total clicks</span></div>
+  </div>
+  <div class="mock-chart-container">
+    <div class="mock-chart-bars">
+      <div class="bar" style="height: 30%"></div>
+      <div class="bar" style="height: 50%"></div>
+      <div class="bar" style="height: 40%"></div>
+      <div class="bar" style="height: 80%"></div>
+      <div class="bar" style="height: 60%"></div>
+      <div class="bar" style="height: 90%; background-color: var(--color-orange);"></div>
+      <div class="bar" style="height: 70%"></div>
+    </div>
+    <div class="mock-chart-labels">
+      <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+    </div>
+  </div>
+</div>
+
+<!-- Grid Charts -->
+<div class="analytics-grid">
+  <!-- Top Links -->
+  <div class="analytics-card">
+    <h3 class="card-title">Top Performing Links</h3>
+    <div class="list-group">
+      <div class="list-item">
+        <div class="item-left">
+          <span class="rank">1</span>
+          <span class="label">snip.ly/launch24</span>
+        </div>
+        <span class="value">1,284</span>
+      </div>
+      <div class="list-item">
+        <div class="item-left">
+          <span class="rank">2</span>
+          <span class="label">snip.ly/docs-v2</span>
+        </div>
+        <span class="value">542</span>
+      </div>
+      <div class="list-item">
+        <div class="item-left">
+          <span class="rank">3</span>
+          <span class="label">snip.ly/blog-q3</span>
+        </div>
+        <span class="value">289</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Devices -->
+  <div class="analytics-card">
+    <h3 class="card-title">Device Breakdown</h3>
+    <div class="progress-group">
+      <div class="progress-item">
+        <div class="progress-header">
+          <span>Mobile</span>
+          <span>65%</span>
+        </div>
+        <div class="progress-bar"><div class="fill" style="width: 65%;"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span>Desktop</span>
+          <span>30%</span>
+        </div>
+        <div class="progress-bar"><div class="fill" style="width: 30%;"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span>Tablet</span>
+          <span>5%</span>
+        </div>
+        <div class="progress-bar"><div class="fill" style="width: 5%;"></div></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Referrers -->
+  <div class="analytics-card">
+    <h3 class="card-title">Top Referrers</h3>
+    <div class="list-group">
+      <div class="list-item">
+        <div class="item-left">
+          <div class="dot" style="background-color: #1DA1F2;"></div>
+          <span class="label">Twitter / X</span>
+        </div>
+        <span class="value">845</span>
+      </div>
+      <div class="list-item">
+        <div class="item-left">
+          <div class="dot" style="background-color: #0A66C2;"></div>
+          <span class="label">LinkedIn</span>
+        </div>
+        <span class="value">532</span>
+      </div>
+      <div class="list-item">
+        <div class="item-left">
+          <div class="dot" style="background-color: var(--color-text-muted);"></div>
+          <span class="label">Direct / Unknown</span>
+        </div>
+        <span class="value">420</span>
+      </div>
+    </div>
+  </div>
+</div>

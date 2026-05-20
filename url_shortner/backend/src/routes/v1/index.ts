@@ -5,6 +5,7 @@ import { authRoutes } from '../auth.routes.js';
 import { aliasRoutes } from '../alias.routes.js';
 import { subscriptionRoutes } from './subscription.routes.js';
 import { qrRoutes } from './qr.routes.js';
+import { analyticsRoutes } from './analytics.routes.js';
 
 export const v1Router = Router();
 
@@ -14,3 +15,4 @@ v1Router.use('/auth', authRoutes);
 v1Router.use('/aliases', aliasRoutes);
 v1Router.use('/subscriptions', subscriptionRoutes);
 v1Router.use('/qr', qrRoutes);
+v1Router.use('/analytics', analyticsRoutes);

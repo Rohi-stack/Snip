@@ -8,6 +8,7 @@
     "start": "node dist/server.js",
     "postinstall": "npm run prisma:generate",
     "prisma:generate": "prisma generate --schema=../database/prisma/schema.prisma",
+    "db:seed": "npx tsx ../testing/seed/test-users.ts",
     "test": "vitest"
   },
   "dependencies": {

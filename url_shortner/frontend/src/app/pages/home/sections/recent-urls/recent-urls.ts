@@ -1,6 +1,17 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { ShortUrl } from '../../../../models/url.model';
+import { AuthService } from '../../../../core/services/auth.service';
+import { UrlApiService, type UrlListItem } from '../../../../services/url-api.service';
+
+/** Key used by hero component to store anonymously-created links in sessionStorage */
+export const SESSION_RECENT_URLS_KEY = 'snip_session_urls';
+
+export interface SessionUrl {
+  id: string;
+  shortCode: string;
+  originalUrl: string;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-recent-urls',
@@ -8,103 +19,87 @@ import type { ShortUrl } from '../../../../models/url.model';
   templateUrl: './recent-urls.html',
   styleUrl: './recent-urls.scss',
 })
-export class RecentUrlsComponent {
-  // Toggle to preview authenticated state
-  isAuthenticated = signal(false);
+export class RecentUrlsComponent implements OnInit {
+  private auth = inject(AuthService);
+  private urlApi = inject(UrlApiService);
 
+  isAuthenticated = this.auth.isLoggedIn;
+  loading = signal(false);
   copiedId = signal<string | null>(null);
 
-  anonUrls: ShortUrl[] = [
-    {
-      id: '1',
-      shortCode: 'abc123',
-      shortUrl: 'snip.ly/abc123',
-      originalUrl: 'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch',
-      clicks: 14,
-      createdAt: '2 minutes ago',
-      hasQr: false,
-    },
-    {
-      id: '2',
-      shortCode: 'xk8pq2',
-      shortUrl: 'snip.ly/xk8pq2',
-      originalUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      clicks: 7,
-      createdAt: '15 minutes ago',
-      hasQr: true,
-    },
-    {
-      id: '3',
-      shortCode: 'zt4r91',
-      shortUrl: 'snip.ly/zt4r91',
-      originalUrl: 'https://github.com/angular/angular/releases/tag/v21.0.0',
-      clicks: 32,
-      createdAt: '1 hour ago',
-      hasQr: false,
-    },
-  ];
+  /** For logged-in users — fetched from API */
+  apiLinks = signal<UrlListItem[]>([]);
+  /** For anonymous users — from sessionStorage */
+  sessionLinks = signal<SessionUrl[]>([]);
 
-  authUrls: ShortUrl[] = [
-    {
-      id: '1',
-      shortCode: 'launch24',
-      shortUrl: 'snip.ly/launch24',
-      originalUrl: 'https://producthunt.com/posts/snip-saas-url-shortener',
-      alias: 'launch24',
-      clicks: 1284,
-      createdAt: '2 days ago',
-      hasQr: true,
-    },
-    {
-      id: '2',
-      shortCode: 'docs-v2',
-      shortUrl: 'snip.ly/docs-v2',
-      originalUrl: 'https://docs.snip.ly/api/v2/getting-started',
-      alias: 'docs-v2',
-      clicks: 542,
-      createdAt: '4 days ago',
-      hasQr: false,
-    },
-    {
-      id: '3',
-      shortCode: 'blog-q3',
-      shortUrl: 'snip.ly/blog-q3',
-      originalUrl: 'https://medium.com/engineering/scaling-url-shortener-to-1m-requests',
-      clicks: 289,
-      createdAt: '1 week ago',
-      hasQr: true,
-    },
-    {
-      id: '4',
-      shortCode: 'promo',
-      shortUrl: 'snip.ly/promo',
-      originalUrl: 'https://stripe.com/customers/snip-case-study',
-      alias: 'promo',
-      clicks: 98,
-      createdAt: '1 week ago',
-      hasQr: false,
-    },
-    {
-      id: '5',
-      shortCode: 'career',
-      shortUrl: 'snip.ly/career',
-      originalUrl: 'https://jobs.snip.ly/senior-fullstack-engineer',
-      alias: 'career',
-      clicks: 47,
-      createdAt: '2 weeks ago',
-      expiresAt: 'in 14 days',
-      hasQr: false,
-    },
-  ];
-
-  get displayUrls(): ShortUrl[] {
-    return this.isAuthenticated() ? this.authUrls : this.anonUrls;
+  ngOnInit(): void {
+    if (this.isAuthenticated()) {
+      this.loadApiLinks();
+    } else {
+      this.loadSessionLinks();
+    }
   }
 
-  copyUrl(url: ShortUrl): void {
-    navigator.clipboard.writeText(url.shortUrl).then(() => {
-      this.copiedId.set(url.id);
+  private async loadApiLinks(): Promise<void> {
+    this.loading.set(true);
+    try {
+      const result = await this.urlApi.listMyUrls(1, 5);
+      this.apiLinks.set(result.urls);
+    } catch {
+      // Silent — empty state will show
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private loadSessionLinks(): void {
+    try {
+      const raw = sessionStorage.getItem(SESSION_RECENT_URLS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as SessionUrl[];
+        this.sessionLinks.set(Array.isArray(parsed) ? parsed.slice(0, 5) : []);
+      }
+    } catch {
+      this.sessionLinks.set([]);
+    }
+  }
+
+  get hasLinks(): boolean {
+    return this.isAuthenticated()
+      ? this.apiLinks().length > 0
+      : this.sessionLinks().length > 0;
+  }
+
+  shortUrl(code: string): string {
+    return `snip.ly/${code}`;
+  }
+
+  copyUrl(code: string, id: string): void {
+    navigator.clipboard.writeText(this.shortUrl(code)).then(() => {
+      this.copiedId.set(id);
       setTimeout(() => this.copiedId.set(null), 2000);
     });
+  }
+
+  formatDate(iso: string): string {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / 60_000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDay = Math.floor(diffHr / 24);
+    return `${diffDay}d ago`;
+  }
+
+  truncate(url: string, max = 50): string {
+    try {
+      const clean = url.replace(/^https?:\/\/(www\.)?/, '');
+      return clean.length > max ? clean.slice(0, max) + '…' : clean;
+    } catch {
+      return url;
+    }
   }
 }

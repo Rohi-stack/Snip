@@ -1,4 +1,4 @@
-import { Component, HostListener, signal } from '@angular/core';
+import { Component, HostListener, signal, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -13,9 +13,26 @@ export class NavbarComponent {
   // Mock: set to true to preview authenticated state
   isLoggedIn = signal(false);
 
+  constructor() {
+    effect(() => {
+      if (this.mobileOpen()) {
+        document.body.classList.add('menu-open');
+      } else {
+        document.body.classList.remove('menu-open');
+      }
+    });
+  }
+
   @HostListener('window:scroll')
   onScroll(): void {
     this.isScrolled.set(window.scrollY > 20);
+  }
+
+  @HostListener('window:keydown.Escape')
+  onEscape(): void {
+    if (this.mobileOpen()) {
+      this.closeMobile();
+    }
   }
 
   toggleMobile(): void {

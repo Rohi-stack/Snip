@@ -158,4 +158,30 @@ export const urlService = {
       );
     });
   },
+
+  async listUserUrls(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{ urls: CreateUrlResult[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const { rows, total } = await urlRepository.listByUserId(userId, { skip, take: pageSize });
+
+    const tier = resolveTier('registered');
+    const { maxUrlsPerDay } = TIER_LIMITS[tier];
+
+    return {
+      urls: rows.map((r) => toCreateUrlResult(r, tier, maxUrlsPerDay)),
+      total,
+      page,
+      pageSize,
+    };
+  },
+
+  async deleteUrl(userId: string, urlId: string): Promise<void> {
+    const deleted = await urlRepository.softDelete(urlId, userId);
+    if (!deleted) {
+      throw new AppError(HTTP.NOT_FOUND, 'URL not found or not owned by user', 'URL_NOT_FOUND');
+    }
+  },
 };

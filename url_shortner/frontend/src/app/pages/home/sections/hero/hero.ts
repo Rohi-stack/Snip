@@ -1,76 +1,25 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import type { ShortenApiResponse, ApiSuccessEnvelope } from '../../../../models/url.model';
+import { AuthService } from '../../../../core/services/auth.service';
+import { SubscriptionApiService } from '../../../../services/subscription-api.service';
+import { SESSION_RECENT_URLS_KEY } from '../recent-urls/recent-urls';
 
 type CardState = 'idle' | 'loading' | 'result';
 type QrFormat = 'png' | 'svg' | 'jpeg';
-
-// In production: resolved from AuthService + SubscriptionService
-export type UserTier = 'anonymous' | 'free' | 'plan_2' | 'plan_5';
 
 export interface Entitlement {
   tierLabel: string;
   expiryLabel: string;
   dailyQuota: number;
-  usedToday: number;
   hasAliases: boolean;
-  hasQr: boolean;        // Only plan_5 — maps to backend requiresPremium check
+  hasQr: boolean;
   isUnlimited: boolean;
   canUpgrade: boolean;
   upgradeText: string;
   badgeVariant: 'muted' | 'orange' | 'amber';
 }
-
-const ENTITLEMENTS: Record<UserTier, Entitlement> = {
-  anonymous: {
-    tierLabel: 'Free Plan',
-    expiryLabel: 'Links expire in 1 hour',
-    dailyQuota: 5,
-    usedToday: 2,
-    hasAliases: false,
-    hasQr: false,
-    isUnlimited: false,
-    canUpgrade: true,
-    upgradeText: 'Sign up for longer expiry',
-    badgeVariant: 'muted',
-  },
-  free: {
-    tierLabel: 'Free Account',
-    expiryLabel: 'Links expire in 24 hours',
-    dailyQuota: 10,
-    usedToday: 4,
-    hasAliases: false,
-    hasQr: false,
-    isUnlimited: false,
-    canUpgrade: true,
-    upgradeText: 'Upgrade for custom aliases & QR',
-    badgeVariant: 'muted',
-  },
-  plan_2: {
-    tierLabel: '₹2 Plan',
-    expiryLabel: 'Links expire in 7 days',
-    dailyQuota: 100,
-    usedToday: 11,
-    hasAliases: false,
-    hasQr: false,
-    isUnlimited: false,
-    canUpgrade: true,
-    upgradeText: 'Upgrade to ₹5 for aliases & QR',
-    badgeVariant: 'orange',
-  },
-  plan_5: {
-    tierLabel: 'Premium',
-    expiryLabel: 'Links expire in 30 days',
-    dailyQuota: 0,
-    usedToday: 8,
-    hasAliases: true,
-    hasQr: true,
-    isUnlimited: true,
-    canUpgrade: false,
-    upgradeText: '',
-    badgeVariant: 'amber',
-  },
-};
 
 @Component({
   selector: 'app-hero',
@@ -78,60 +27,161 @@ const ENTITLEMENTS: Record<UserTier, Entitlement> = {
   templateUrl: './hero.html',
   styleUrl: './hero.scss',
 })
-export class HeroComponent {
-  // Card form state
+export class HeroComponent implements OnInit {
+  private auth = inject(AuthService);
+  private subApi = inject(SubscriptionApiService);
+
+  /** QR formats supported by GET /api/v1/qr/:shortCode?format=... */
+  readonly qrFormats: QrFormat[] = ['png', 'svg', 'jpeg'];
+
+  // ── Auth / Subscription state ────────────────────────────────────────────
+  isLoggedIn = this.auth.isLoggedIn;
+  isPremium = signal(false);
+
+  // ── Card state ──────────────────────────────────────────────────────────
   cardState = signal<CardState>('idle');
   longUrl = signal('');
   alias = signal('');
   showAlias = signal(false);
-  resultUrl = signal('');
   copied = signal(false);
 
-  // QR download state — tracks which format is in-flight, null when idle
+  // ── Result data from real API ────────────────────────────────────────────
+  resultUrl = signal('');
+  resultShortCode = signal('');
+
+  // ── Error states ─────────────────────────────────────────────────────────
+  shortenError = signal<string | null>(null);
   qrDownloading = signal<QrFormat | null>(null);
   qrError = signal<string | null>(null);
 
-  // Mock: set tier to preview different entitlement states
-  // In production this comes from AuthService + SubscriptionService
-  userTier = signal<UserTier>('anonymous');
-
-  entitlement = computed<Entitlement>(() => ENTITLEMENTS[this.userTier()]);
-
-  quotaPercent = computed(() => {
-    const e = this.entitlement();
-    if (e.isUnlimited) return 0;
-    return Math.min(100, Math.round((e.usedToday / e.dailyQuota) * 100));
+  // ── Entitlement (computed from real auth/subscription state) ─────────────
+  entitlement = computed<Entitlement>(() => {
+    if (this.isPremium()) {
+      return {
+        tierLabel: 'Premium',
+        expiryLabel: 'Links expire in 30 days',
+        dailyQuota: 0,
+        hasAliases: true,
+        hasQr: true,
+        isUnlimited: true,
+        canUpgrade: false,
+        upgradeText: '',
+        badgeVariant: 'amber',
+      };
+    }
+    if (this.isLoggedIn()) {
+      return {
+        tierLabel: 'Free Account',
+        expiryLabel: 'Links expire in 24 hours',
+        dailyQuota: 10,
+        hasAliases: false,
+        hasQr: false,
+        isUnlimited: false,
+        canUpgrade: true,
+        upgradeText: 'Upgrade for custom aliases & QR downloads',
+        badgeVariant: 'muted',
+      };
+    }
+    // Anonymous
+    return {
+      tierLabel: 'Free Plan',
+      expiryLabel: 'Links expire in 1 hour',
+      dailyQuota: 5,
+      hasAliases: false,
+      hasQr: false,
+      isUnlimited: false,
+      canUpgrade: true,
+      upgradeText: 'Sign up for longer expiry',
+      badgeVariant: 'muted',
+    };
   });
 
-  quotaRemaining = computed(() => {
-    const e = this.entitlement();
-    if (e.isUnlimited) return 0;
-    return e.dailyQuota - e.usedToday;
-  });
+  isQuotaLow = computed(() => false);      // quota enforced server-side — show error after 429
+  isQuotaExhausted = computed(() => false); // quota enforced server-side
 
-  isQuotaLow = computed(() => this.quotaPercent() >= 80);
-  isQuotaExhausted = computed(() => {
-    const e = this.entitlement();
-    return !e.isUnlimited && e.usedToday >= e.dailyQuota;
-  });
+  /** Bar fill % — always 0 since we rely on server-side enforcement (429 response) for actual exhaustion. */
+  quotaPercent = computed(() => 0);
+  /** Remaining links label — shows daily quota from entitlement */
+  quotaRemaining = computed(() => this.entitlement().dailyQuota);
 
-  /** Extracted short code from resultUrl e.g. "snip.ly/abc123" → "abc123" */
-  resultShortCode = computed(() => this.resultUrl().split('/').pop() ?? '');
-
-  shorten(): void {
-    const url = this.longUrl().trim();
-    if (!url || this.isQuotaExhausted()) return;
-
-    this.cardState.set('loading');
-    this.qrError.set(null);
-    setTimeout(() => {
-      const useAlias = this.entitlement().hasAliases && this.alias().trim();
-      const code = useAlias ? this.alias().trim() : this.randomCode();
-      this.resultUrl.set(`snip.ly/${code}`);
-      this.cardState.set('result');
-    }, 900);
+  async ngOnInit(): Promise<void> {
+    if (this.isLoggedIn()) {
+      try {
+        const sub = await this.subApi.getMySubscription();
+        this.isPremium.set(sub.isPremium);
+      } catch {
+        // Default to free if request fails
+        this.isPremium.set(false);
+      }
+    }
   }
 
+  // ── Shorten ───────────────────────────────────────────────────────────────
+  async shorten(): Promise<void> {
+    const url = this.longUrl().trim();
+    if (!url || this.cardState() === 'loading') return;
+
+    this.cardState.set('loading');
+    this.shortenError.set(null);
+    this.qrError.set(null);
+
+    try {
+      const body: Record<string, string> = { originalUrl: url };
+      const aliasVal = this.alias().trim();
+      if (this.entitlement().hasAliases && aliasVal) {
+        body['alias'] = aliasVal;
+      }
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const token = await this.auth.getValidAccessToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/v1/urls', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      const json = await res.json() as ApiSuccessEnvelope<ShortenApiResponse> | { message?: string };
+
+      if (!res.ok) {
+        const errMsg = (json as { message?: string }).message ?? `Error ${res.status}`;
+        throw new Error(errMsg);
+      }
+
+      const data = (json as ApiSuccessEnvelope<ShortenApiResponse>).data;
+      this.resultShortCode.set(data.shortCode);
+      this.resultUrl.set(`snip.ly/${data.shortCode}`);
+      this.cardState.set('result');
+
+      // Push to session storage for the recent-urls component (anonymous & logged-in)
+      this.pushToSessionRecent({
+        id: data.id ?? data.shortCode,
+        shortCode: data.shortCode,
+        originalUrl: url,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not shorten link. Please try again.';
+      this.shortenError.set(msg);
+      this.cardState.set('idle');
+    }
+  }
+
+  private pushToSessionRecent(entry: { id: string; shortCode: string; originalUrl: string; createdAt: string }): void {
+    try {
+      const raw = sessionStorage.getItem(SESSION_RECENT_URLS_KEY);
+      const existing = raw ? (JSON.parse(raw) as typeof entry[]) : [];
+      // Prepend new, keep max 10
+      const updated = [entry, ...existing.filter(e => e.id !== entry.id)].slice(0, 10);
+      sessionStorage.setItem(SESSION_RECENT_URLS_KEY, JSON.stringify(updated));
+    } catch {
+      // sessionStorage unavailable — no-op
+    }
+  }
+
+  // ── Copy ──────────────────────────────────────────────────────────────────
   copy(): void {
     navigator.clipboard.writeText(this.resultUrl()).then(() => {
       this.copied.set(true);
@@ -139,6 +189,7 @@ export class HeroComponent {
     });
   }
 
+  // ── Reset ─────────────────────────────────────────────────────────────────
   reset(): void {
     this.cardState.set('idle');
     this.longUrl.set('');
@@ -146,20 +197,19 @@ export class HeroComponent {
     this.showAlias.set(false);
     this.copied.set(false);
     this.resultUrl.set('');
+    this.resultShortCode.set('');
+    this.shortenError.set(null);
     this.qrError.set(null);
     this.qrDownloading.set(null);
   }
 
+  // ── Alias toggle ──────────────────────────────────────────────────────────
   toggleAlias(): void {
     if (!this.entitlement().hasAliases) return;
     this.showAlias.update(v => !v);
   }
 
-  /**
-   * Download QR for the current short link.
-   * Calls GET /api/v1/qr/:shortCode?format=png|svg|jpeg (proxied to backend).
-   * Backend: requires auth + plan_5 entitlement (enforced server-side).
-   */
+  // ── QR download ───────────────────────────────────────────────────────────
   async downloadQr(format: QrFormat): Promise<void> {
     const code = this.resultShortCode();
     if (!code || this.qrDownloading()) return;
@@ -168,8 +218,10 @@ export class HeroComponent {
     this.qrError.set(null);
 
     try {
+      const token = await this.auth.getValidAccessToken();
       const res = await fetch(`/api/v1/qr/${code}?format=${format}`, {
-        credentials: 'include',  // sends session cookie / JWT cookie
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!res.ok) {
@@ -195,10 +247,11 @@ export class HeroComponent {
     }
   }
 
-  onLongUrlChange(value: string): void { this.longUrl.set(value); }
-  onAliasChange(value: string): void { this.alias.set(value); }
-
-  private randomCode(): string {
-    return Math.random().toString(36).slice(2, 8);
+  // ── Input handlers ────────────────────────────────────────────────────────
+  onLongUrlChange(value: string): void {
+    this.longUrl.set(value);
+    if (this.shortenError()) this.shortenError.set(null);
   }
+
+  onAliasChange(value: string): void { this.alias.set(value); }
 }

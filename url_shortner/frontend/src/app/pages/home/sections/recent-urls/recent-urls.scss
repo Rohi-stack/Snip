@@ -2,6 +2,10 @@
 
 .recent-urls {
   padding: var(--space-20) 0;
+
+  @media (max-width: 768px) {
+    padding: var(--space-12) 0;
+  }
 }
 
 // ── Section header ──────────────────────────────────────────────────────
@@ -153,3 +157,43 @@
     }
   }
 }
+
+// ── Skeleton loading ──────────────────────────────────────────────────────
+.url-card--skeleton {
+  pointer-events: none;
+  animation: recentPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeleton {
+  background: var(--color-bg-elevated);
+  display: block;
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────
+.recent-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-6);
+  background: var(--color-bg-card);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  &__text {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    
+    a { color: var(--color-orange); text-decoration: none; &:hover { text-decoration: underline; } }
+  }
+}
+

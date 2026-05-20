@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contact-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.topics-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+}
+
+.topic-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-orange);
+  flex-shrink: 0;
+}
+
+.topic-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  strong {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  
+  span {
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+}
+
+.contact-channels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.channel-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-decoration: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(249, 115, 22, 0.4);
+    box-shadow: var(--shadow-card);
+    
+    .arrow {
+      transform: translateX(4px);
+      color: var(--color-orange);
+    }
+  }
+}
+
+.channel-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-orange-dim);
+  color: var(--color-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  &.linkedin {
+    background-color: rgba(10, 102, 194, 0.1);
+    color: #0A66C2;
+  }
+  
+  &.github {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+}
+
+.channel-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+}
+
+.arrow {
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}

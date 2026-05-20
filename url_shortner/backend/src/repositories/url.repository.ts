@@ -78,6 +78,40 @@ export const urlRepository = {
     if (!row) return null;
     return toPersistedUrl(row);
   },
+
+  async listByUserId(
+    userId: string,
+    opts: { skip?: number; take?: number } = {}
+  ): Promise<{ rows: PersistedUrl[]; total: number }> {
+    const where = {
+      userId,
+      deletedAt: null,
+    };
+
+    const [rows, total] = await prisma.$transaction([
+      prisma.url.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: opts.skip ?? 0,
+        take: opts.take ?? 20,
+      }),
+      prisma.url.count({ where }),
+    ]);
+
+    return { rows: rows.map(toPersistedUrl), total };
+  },
+
+  async softDelete(id: string, userId: string): Promise<PersistedUrl | null> {
+    const row = await prisma.url.findUnique({ where: { id } });
+    if (!row || row.userId !== userId) return null;
+
+    const updated = await prisma.url.update({
+      where: { id },
+      data: { deletedAt: new Date(), status: UrlStatus.EXPIRED },
+    });
+
+    return toPersistedUrl(updated);
+  },
 };
 
 /** Map unexpected Prisma failures to AppError (service may also handle P2002). */

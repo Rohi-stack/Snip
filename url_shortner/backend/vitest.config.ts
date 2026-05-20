@@ -8,10 +8,9 @@ export default defineConfig({
     // Run integration tests sequentially since they hit the same database
     fileParallelism: false,
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true
-      }
-    }
+    // Vitest 4: poolOptions moved to top-level forks option
+    forks: {
+      singleFork: true,
+    },
   },
 });
