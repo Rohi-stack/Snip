@@ -1,0 +1,343 @@
+<section class="hero" id="hero" aria-label="Hero">
+
+  <div class="hero__glow" aria-hidden="true"></div>
+
+  <div class="container hero__inner">
+
+    <!-- ── LEFT: Copy ───────────────────────────────────────── -->
+    <div class="hero__left">
+      <div class="hero__badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Real-time analytics — free to start
+      </div>
+
+      <h1 class="hero__headline">
+        Shorten links.<br>
+        Track analytics.<br>
+        <span class="hero__headline-accent">Share smarter.</span>
+      </h1>
+
+      <p class="hero__sub">
+        Create short URLs and track real-time click analytics — free for everyone.
+        <strong class="hero__sub-premium">QR code downloads</strong> and custom aliases are Premium features.
+      </p>
+
+      <div class="hero__ctas">
+        <a routerLink="/signup" class="btn btn--primary btn--lg" id="hero-cta-start">
+          Start free
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a routerLink="/pricing" class="btn btn--ghost btn--lg" id="hero-cta-pricing">View pricing</a>
+      </div>
+
+      <div class="hero__stats">
+        <div class="hero__stat">
+          <span class="hero__stat-num">2.4M+</span>
+          <span class="hero__stat-label">Links shortened</span>
+        </div>
+        <div class="hero__stat-divider" aria-hidden="true"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-num">99.9%</span>
+          <span class="hero__stat-label">Uptime SLA</span>
+        </div>
+        <div class="hero__stat-divider" aria-hidden="true"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-num">&lt;50ms</span>
+          <span class="hero__stat-label">Redirect speed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: URL Shortener Card ─────────────────────────── -->
+    <div class="hero__right">
+      <div class="hero-card" [class.hero-card--result]="cardState() === 'result'">
+
+        <div class="hero-card__header">
+          <span class="hero-card__header-dot" style="background:#ef4444"></span>
+          <span class="hero-card__header-dot" style="background:#fbbf24"></span>
+          <span class="hero-card__header-dot" style="background:#22c55e"></span>
+          <span class="hero-card__title">Try it now — it's free</span>
+        </div>
+
+        <!-- ══════════════ FORM STATE ══════════════ -->
+        @if (cardState() !== 'result') {
+          <div class="hero-card__form">
+
+            <!-- Entitlement Bar -->
+            <div
+              class="entitlement-bar"
+              [class.entitlement-bar--orange]="entitlement().badgeVariant === 'orange'"
+              [class.entitlement-bar--amber]="entitlement().badgeVariant === 'amber'"
+              [class.entitlement-bar--exhausted]="isQuotaExhausted()"
+            >
+              <div class="entitlement-bar__top">
+                <div class="entitlement-bar__plan-info">
+                  <span class="entitlement-bar__dot" aria-hidden="true"></span>
+                  <span class="entitlement-bar__tier">{{ entitlement().tierLabel }}</span>
+                  <span class="entitlement-bar__sep" aria-hidden="true">•</span>
+                  <span class="entitlement-bar__expiry">{{ entitlement().expiryLabel }}</span>
+                </div>
+                @if (!entitlement().isUnlimited) {
+                  <a routerLink="/pricing" class="entitlement-bar__cta" id="entitlement-upgrade-link">
+                    Upgrade
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </a>
+                } @else {
+                  <span class="entitlement-bar__premium-badge">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Premium
+                  </span>
+                }
+              </div>
+
+              @if (!entitlement().isUnlimited) {
+                <div class="entitlement-bar__quota">
+                  <div class="entitlement-bar__quota-bar">
+                    <div
+                      class="entitlement-bar__quota-fill"
+                      [class.entitlement-bar__quota-fill--low]="isQuotaLow()"
+                      [class.entitlement-bar__quota-fill--exhausted]="isQuotaExhausted()"
+                      [style.width.%]="quotaPercent()"
+                    ></div>
+                  </div>
+                  @if (isQuotaExhausted()) {
+                    <span class="entitlement-bar__quota-label entitlement-bar__quota-label--exhausted">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      Daily limit reached — <a routerLink="/pricing">upgrade to continue</a>
+                    </span>
+                  } @else {
+                    <span class="entitlement-bar__quota-label">
+                      {{ quotaRemaining() }} of {{ entitlement().dailyQuota }} links remaining today
+                    </span>
+                  }
+                </div>
+              } @else {
+                <div class="entitlement-bar__unlimited">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
+                  Unlimited links
+                </div>
+              }
+
+              @if (entitlement().canUpgrade && !isQuotaExhausted()) {
+                <p class="entitlement-bar__upsell">{{ entitlement().upgradeText }}</p>
+              }
+            </div>
+
+            <!-- URL Input -->
+            <div class="hero-card__field">
+              <label class="hero-card__label" for="hero-url-input">Paste your long URL</label>
+              <div class="hero-card__input-wrap">
+                <svg class="hero-card__input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                <input
+                  id="hero-url-input"
+                  class="input hero-card__input"
+                  type="url"
+                  placeholder="https://your-very-long-url.com/path?query=..."
+                  [value]="longUrl()"
+                  (input)="onLongUrlChange($any($event.target).value)"
+                  [disabled]="cardState() === 'loading' || isQuotaExhausted()"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <!-- Inline shorten error -->
+            @if (shortenError()) {
+              <p class="hero-card__error" role="alert" id="hero-shorten-error">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {{ shortenError() }}
+              </p>
+            }
+
+            <!-- Custom Alias: unlocked or locked indicator -->
+            @if (entitlement().hasAliases) {
+              <div class="hero-card__alias-toggle">
+                <button type="button" class="hero-card__toggle-btn" (click)="toggleAlias()" [attr.aria-expanded]="showAlias()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"
+                       [style.transform]="showAlias() ? 'rotate(90deg)' : 'rotate(0)'">
+                    <path d="M9 18l6-6-6-6"/>
+                  </svg>
+                  {{ showAlias() ? 'Remove custom alias' : 'Add custom alias' }}
+                </button>
+              </div>
+              @if (showAlias()) {
+                <div class="hero-card__field">
+                  <label class="hero-card__label" for="hero-alias-input">Custom alias</label>
+                  <div class="hero-card__alias-row">
+                    <span class="hero-card__alias-prefix">snip.ly/</span>
+                    <input
+                      id="hero-alias-input"
+                      class="input hero-card__input hero-card__alias-input"
+                      type="text"
+                      placeholder="my-link"
+                      [value]="alias()"
+                      (input)="onAliasChange($any($event.target).value)"
+                      [disabled]="cardState() === 'loading'"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="feature-locked" aria-label="Custom alias — premium feature">
+                <svg class="feature-locked__lock" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                <span class="feature-locked__label">Custom alias</span>
+                <a routerLink="/pricing" class="feature-locked__badge" id="alias-upgrade-badge">Premium</a>
+              </div>
+            }
+
+            <!-- Shorten Button -->
+            <button
+              class="btn btn--primary hero-card__submit"
+              [class.hero-card__submit--loading]="cardState() === 'loading'"
+              [class.hero-card__submit--exhausted]="isQuotaExhausted()"
+              (click)="shorten()"
+              [disabled]="!longUrl().trim() || cardState() === 'loading' || isQuotaExhausted()"
+              id="hero-shorten-btn"
+            >
+              @if (isQuotaExhausted()) {
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                Daily limit reached
+              } @else if (cardState() === 'loading') {
+                <span class="hero-card__spinner" aria-hidden="true"></span>
+                Shortening…
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Shorten link
+              }
+            </button>
+
+          </div>
+        }
+
+        <!-- ══════════════ RESULT STATE ══════════════ -->
+        @if (cardState() === 'result') {
+          <div class="hero-card__result">
+
+            <!-- Success label -->
+            <div class="result-success-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              Short link ready
+            </div>
+
+            <!-- Short URL row: Copy + Visit inline -->
+            <div class="result-url-row">
+              <span class="result-url">{{ resultUrl() }}</span>
+              <div class="result-url-actions">
+                <button
+                  class="btn btn--primary btn--sm result-copy-btn"
+                  [class.result-copy-btn--copied]="copied()"
+                  (click)="copy()"
+                  id="hero-copy-btn"
+                >
+                  @if (copied()) {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Copied
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                  }
+                </button>
+                <a
+                  [href]="'https://' + resultUrl()"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn--ghost btn--sm result-visit-btn"
+                  id="result-visit-btn"
+                  aria-label="Visit short link in new tab"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Visit
+                </a>
+              </div>
+            </div>
+
+            <!-- Expiry from entitlement -->
+            <div class="result-meta">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{{ entitlement().expiryLabel }}</span>
+              @if (entitlement().canUpgrade) {
+                <span class="result-meta__sep">—</span>
+                <a routerLink="/pricing" class="result-meta__upgrade">extend with upgrade</a>
+              }
+            </div>
+
+            <!-- ── QR Downloads — premium capability panel ── -->
+            <div
+              class="result-qr-section"
+              [class.result-qr-section--premium]="entitlement().hasQr"
+              [class.result-qr-section--locked]="!entitlement().hasQr"
+            >
+              <div class="result-qr-section__header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3a2 2 0 00-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 01-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                <span>QR Downloads</span>
+                @if (entitlement().hasQr) {
+                  <span class="result-qr-section__premium-badge">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Premium
+                  </span>
+                }
+              </div>
+
+              @if (entitlement().hasQr) {
+                <!-- Premium: real download buttons backed by GET /api/v1/qr/:shortCode -->
+                <div class="qr-downloads">
+                  @for (fmt of qrFormats; track fmt) {
+                    <button
+                      class="qr-download-btn"
+                      [class.qr-download-btn--loading]="qrDownloading() === fmt"
+                      (click)="downloadQr(fmt)"
+                      [disabled]="qrDownloading() !== null"
+                      [attr.id]="'qr-download-' + fmt"
+                      [attr.aria-label]="'Download QR as ' + fmt.toUpperCase()"
+                    >
+                      @if (qrDownloading() === fmt) {
+                        <span class="qr-download-btn__spinner" aria-hidden="true"></span>
+                      } @else {
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      }
+                      {{ fmt.toUpperCase() }}
+                    </button>
+                  }
+                </div>
+
+                @if (qrError()) {
+                  <p class="qr-error" role="alert">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ qrError() }}
+                  </p>
+                }
+              } @else {
+                <!-- Free / lower tiers: locked QR indicator -->
+                <div class="qr-locked">
+                  <div class="qr-locked__left">
+                    <svg class="qr-locked__lock" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    <span>🔒 QR Downloads — Premium Feature</span>
+                  </div>
+                  <a routerLink="/pricing" class="btn btn--ghost btn--sm qr-locked__upgrade" id="qr-locked-upgrade">
+                    Upgrade
+                  </a>
+                </div>
+              }
+            </div>
+
+            <!-- Bottom actions: Analytics + Shorten another -->
+            <div class="result-actions">
+              <a routerLink="/dashboard" class="btn btn--ghost btn--sm" id="result-analytics-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Analytics
+              </a>
+              <button class="btn btn--ghost btn--sm" (click)="reset()" id="result-reset-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                Shorten another
+              </button>
+            </div>
+
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
+</section>

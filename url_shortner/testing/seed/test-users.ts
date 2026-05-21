@@ -28,9 +28,25 @@ const SubscriptionStatus = { ACTIVE: 'ACTIVE' };
 const UrlStatus = { ACTIVE: 'ACTIVE', EXPIRED: 'EXPIRED' };
 
 async function clearTestUsers() {
-  await prisma.user.deleteMany({
-    where: { email: { in: ['free@snip.test', 'starter@snip.test', 'premium@snip.test'] } }
+  const users = await prisma.user.findMany({
+    where: { email: { in: ['free@snip.test', 'starter@snip.test', 'premium@snip.test'] } },
+    select: { id: true },
   });
+  const ids = users.map(u => u.id);
+  if (ids.length > 0) {
+    await prisma.subscription.deleteMany({ where: { userId: { in: ids } } });
+    await prisma.alias.deleteMany({ where: { createdByUserId: { in: ids } } });
+    // Delete clicks for urls owned by these users before deleting urls
+    const urls = await prisma.url.findMany({ where: { userId: { in: ids } }, select: { id: true } });
+    const urlIds = urls.map(u => u.id);
+    if (urlIds.length > 0) {
+      await prisma.click.deleteMany({ where: { urlId: { in: urlIds } } });
+    }
+    await prisma.url.deleteMany({ where: { userId: { in: ids } } });
+    await prisma.authSession.deleteMany({ where: { userId: { in: ids } } });
+    await prisma.dailyUrlUsage.deleteMany({ where: { userId: { in: ids } } });
+    await prisma.user.deleteMany({ where: { id: { in: ids } } });
+  }
   console.log('  ✓ Cleared existing test users');
 }
 

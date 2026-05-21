@@ -6,7 +6,12 @@ import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 import { verifyGoogleToken } from '../utils/google-oauth.js';
 import { AppError } from '../types/app-error.js';
 import { HTTP } from '../constants/http.js';
-import type { RegisterInput, LoginInput, GoogleLoginInput, AuthTokens, AuthenticatedUser } from '../types/auth.types.js';
+import type { RegisterInput, LoginInput, AuthTokens, AuthenticatedUser } from '../types/auth.types.js';
+
+interface GoogleLoginInput {
+  idToken?: string;
+  accessToken?: string;
+}
 
 const REFRESH_TOKEN_TTL_DAYS = 7;
 
@@ -76,7 +81,7 @@ export const authService = {
   },
 
   async loginWithGoogle(input: GoogleLoginInput): Promise<{ user: AuthenticatedUser; tokens: AuthTokens }> {
-    const payload = await verifyGoogleToken(input.idToken);
+    const payload = await verifyGoogleToken(input);
 
     let user = await authRepository.findUserByGoogleId(payload.googleId);
 

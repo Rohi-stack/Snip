@@ -1,20 +1,10 @@
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
-import { razorpay, verifyWebhookSignature } from '../utils/razorpay.js';
+import { stripe, STRIPE_WEBHOOK_SECRET, TIER_PRICES, resolveTierLabel } from '../utils/stripe.js';
 import { AppError } from '../types/app-error.js';
 import { HTTP } from '../constants/http.js';
 import { SubscriptionStatus } from '@prisma/client';
-import type { CreateOrderResponse, WebhookPayload } from '../types/subscription.types.js';
 
-const PREMIUM_PRICE_INR = 50000; // ₹500 in paise
 const SUBSCRIPTION_DAYS = 30;
-
-/** Derive a human-readable tier label from subscription amount (in paise). */
-function resolveTierLabel(amountPaise: number): string {
-  const rupees = amountPaise / 100;
-  if (rupees <= 2) return 'Starter';
-  if (rupees <= 5) return 'Premium';
-  return 'Premium';
-}
 
 export interface SubscriptionDetails {
   isPremium: boolean;
@@ -25,55 +15,82 @@ export interface SubscriptionDetails {
   expiresAt?: string; // ISO
 }
 
+export interface CheckoutSessionResponse {
+  url: string;
+}
+
 export const subscriptionService = {
-  async createOrder(userId: string): Promise<CreateOrderResponse> {
-    const existing = await subscriptionRepository.findActiveSubscriptionByUserId(userId);
-    if (existing) {
-      throw new AppError(HTTP.CONFLICT, 'User already has an active subscription', 'ALREADY_PREMIUM');
+
+  async createCheckoutSession(
+    userId: string,
+    tier: string,
+    successUrl: string,
+    cancelUrl: string,
+  ): Promise<CheckoutSessionResponse> {
+    if (!stripe) {
+      throw new AppError(HTTP.INTERNAL, 'Stripe is not configured on this server.', 'STRIPE_NOT_CONFIGURED');
     }
 
-    try {
-      const order = await razorpay.orders.create({
-        amount: PREMIUM_PRICE_INR,
-        currency: 'INR',
-        receipt: `receipt_${userId}_${Date.now()}`,
-        notes: { userId },
-      });
-
-      // We do NOT persist to DB yet. We wait for webhook verification!
-      
-      return {
-        id: order.id,
-        amount: Number(order.amount),
-        currency: order.currency,
-        status: order.status,
-      };
-    } catch (error) {
-      throw new AppError(HTTP.INTERNAL, 'Failed to create payment order', 'ORDER_CREATION_FAILED');
+    const tierKey = tier.toLowerCase();
+    const tierConfig = TIER_PRICES[tierKey];
+    if (!tierConfig) {
+      throw new AppError(HTTP.BAD_REQUEST, `Unknown tier: ${tier}`, 'INVALID_TIER');
     }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      metadata: { userId, tier: tierKey },
+      line_items: [
+        {
+          price_data: {
+            currency: 'inr',
+            unit_amount: tierConfig.amount,
+            product_data: {
+              name: `Snip ${tierConfig.label} Plan`,
+              description: `30-day ${tierConfig.label} subscription`,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+
+    if (!session.url) {
+      throw new AppError(HTTP.INTERNAL, 'Failed to create checkout session URL', 'SESSION_URL_MISSING');
+    }
+
+    return { url: session.url };
   },
 
-  async handleWebhook(body: string, signature: string): Promise<void> {
-    const isValid = verifyWebhookSignature(body, signature);
-    if (!isValid) {
-      throw new AppError(HTTP.UNAUTHORIZED, 'Invalid webhook signature', 'INVALID_SIGNATURE');
+  async handleWebhook(rawBody: Buffer, signature: string): Promise<void> {
+    if (!stripe) {
+      throw new AppError(HTTP.INTERNAL, 'Stripe is not configured.', 'STRIPE_NOT_CONFIGURED');
+    }
+    if (!STRIPE_WEBHOOK_SECRET) {
+      throw new AppError(HTTP.INTERNAL, 'Stripe webhook secret is not configured.', 'WEBHOOK_SECRET_MISSING');
     }
 
-    const payload: WebhookPayload = JSON.parse(body);
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+      throw new AppError(HTTP.UNAUTHORIZED, 'Invalid Stripe webhook signature', 'INVALID_STRIPE_SIGNATURE');
+    }
 
-    if (payload.event === 'order.paid') {
-      const paymentEntity = payload.payload.payment?.entity;
-      const orderEntity = payload.payload.order?.entity;
-      
-      const paymentId = paymentEntity?.id || `mock_payment_${Date.now()}`;
-      const amount = paymentEntity?.amount ?? PREMIUM_PRICE_INR;
-      const currency = paymentEntity?.currency ?? 'INR';
-      
-      const userId = orderEntity?.notes?.userId || paymentEntity?.notes?.userId;
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const userId = session.metadata?.userId;
       if (!userId) return;
 
-      const existingSub = await subscriptionRepository.findSubscriptionByPaymentId(paymentId);
-      if (existingSub) return;
+      // Idempotency check
+      const existing = await subscriptionRepository.findSubscriptionBySessionId(session.id);
+      if (existing) return;
+
+      const tierKey = session.metadata?.tier ?? 'premium';
+      const tierConfig = TIER_PRICES[tierKey] ?? TIER_PRICES['premium'];
 
       const startsAt = new Date();
       const expiresAt = new Date();
@@ -81,9 +98,9 @@ export const subscriptionService = {
 
       await subscriptionRepository.createSubscription({
         userId,
-        razorpayPaymentId: paymentId,
-        amount,
-        currency,
+        stripeSessionId: session.id,
+        amount: tierConfig.amount,
+        currency: 'INR',
         status: SubscriptionStatus.ACTIVE,
         startsAt,
         expiresAt,
@@ -112,4 +129,3 @@ export const subscriptionService = {
     return !!sub;
   },
 };
-

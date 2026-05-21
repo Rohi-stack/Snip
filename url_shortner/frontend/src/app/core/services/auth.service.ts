@@ -88,6 +88,12 @@ export class AuthService {
     this._tokens.set(tokens);
   }
 
+  /** Called after a successful Google sign-in — stores user + tokens exactly like login() */
+  loginWithGoogleResult(user: AuthUser, tokens: StoredTokens): void {
+    this._user.set(user);
+    this._tokens.set(tokens);
+  }
+
   async logout(): Promise<void> {
     const tokens = this._tokens();
     if (tokens?.refreshToken) {

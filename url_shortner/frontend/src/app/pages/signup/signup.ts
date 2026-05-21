@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { googleSignIn } from '../../core/services/google-auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -18,6 +19,7 @@ export class Signup {
   email = signal('');
   password = signal('');
   loading = signal(false);
+  googleLoading = signal(false);
   errorMsg = signal<string | null>(null);
 
   async onSubmit(event: Event): Promise<void> {
@@ -50,6 +52,24 @@ export class Signup {
         : msg);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  async onGoogleSignIn(): Promise<void> {
+    if (this.googleLoading() || this.loading()) return;
+    this.googleLoading.set(true);
+    this.errorMsg.set(null);
+    try {
+      const { user, tokens } = await googleSignIn();
+      this.authService.loginWithGoogleResult(user, tokens);
+      this.router.navigate(['/dashboard/links']);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Google sign-in failed.';
+      if (!msg.includes('popup was closed') && !msg.includes('cancelled')) {
+        this.errorMsg.set(msg);
+      }
+    } finally {
+      this.googleLoading.set(false);
     }
   }
 }

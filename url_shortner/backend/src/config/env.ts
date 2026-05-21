@@ -19,4 +19,7 @@ export const env = {
   databaseUrl: requireEnv('DATABASE_URL'),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:4200',
   isProduction: process.env.NODE_ENV === 'production',
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
 } as const;

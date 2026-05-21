@@ -27,16 +27,34 @@ export const subscriptionRepository = {
         userId,
         status: SubscriptionStatus.ACTIVE,
         expiresAt: {
-          gt: new Date(), // Has not expired
+          gt: new Date(),
         },
       },
       orderBy: { createdAt: 'desc' },
     });
   },
 
-  async findSubscriptionByPaymentId(razorpayPaymentId: string): Promise<Subscription | null> {
+  async findSubscriptionBySessionId(stripeSessionId: string): Promise<Subscription | null> {
     return prisma.subscription.findUnique({
-      where: { razorpayPaymentId },
+      where: { stripeSessionId },
     });
-  }
+  },
+
+  async findSubscriptionBySubscriptionId(stripeSubscriptionId: string): Promise<Subscription | null> {
+    return prisma.subscription.findUnique({
+      where: { stripeSubscriptionId },
+    });
+  },
+
+  /** Upsert a stripe customer id against a user */
+  async setStripeCustomerId(userId: string, stripeCustomerId: string): Promise<void> {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { stripeCustomerId },
+    });
+  },
+
+  async findUserByStripeCustomerId(stripeCustomerId: string) {
+    return prisma.user.findUnique({ where: { stripeCustomerId } });
+  },
 };

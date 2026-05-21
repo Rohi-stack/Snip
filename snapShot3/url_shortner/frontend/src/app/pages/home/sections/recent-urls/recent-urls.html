@@ -1,0 +1,136 @@
+<section class="recent-urls" id="recent-urls" aria-label="Recent links">
+  <div class="container">
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          @if (isAuthenticated()) { Your recent links } @else { Links from this session }
+        </h2>
+        <p class="section-sub">
+          @if (isAuthenticated()) {
+            Your last 5 shortened links — manage all of them in the dashboard.
+          } @else {
+            Links you've shortened this session. <a routerLink="/signup" class="section-link">Sign up</a> to save them permanently.
+          }
+        </p>
+      </div>
+      @if (isAuthenticated()) {
+        <a routerLink="/dashboard" class="btn btn--ghost btn--sm">View all →</a>
+      }
+    </div>
+
+    <!-- Loading skeleton -->
+    @if (loading()) {
+      <div class="url-cards">
+        @for (n of [1,2,3]; track n) {
+          <div class="url-card url-card--skeleton">
+            <div class="skeleton" style="height:18px;width:60%;border-radius:4px;margin-bottom:.75rem"></div>
+            <div class="skeleton" style="height:13px;width:90%;border-radius:4px;margin-bottom:.5rem"></div>
+            <div class="skeleton" style="height:13px;width:40%;border-radius:4px"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- No links yet — empty state -->
+    @if (!loading() && !hasLinks) {
+      <div class="recent-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5" aria-hidden="true">
+          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+        </svg>
+        <p class="recent-empty__text">
+          @if (isAuthenticated()) {
+            No links yet. <a routerLink="/" fragment="shorten" class="section-link">Create your first one →</a>
+          } @else {
+            Shortened links will appear here. Try the box above!
+          }
+        </p>
+      </div>
+    }
+
+    <!-- Auth user — API links -->
+    @if (!loading() && isAuthenticated() && apiLinks().length > 0) {
+      <div class="url-cards">
+        @for (link of apiLinks(); track link.id) {
+          <div class="url-card">
+            <div class="url-card__top">
+              <div class="url-card__short-wrap">
+                <span class="url-card__short">{{ shortUrl(link.shortCode) }}</span>
+                @if (link.status === 'EXPIRED') {
+                  <span class="badge badge--muted">expired</span>
+                }
+              </div>
+              <span class="url-card__clicks">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                {{ link.clickCount }} clicks
+              </span>
+            </div>
+
+            <p class="url-card__original" [title]="link.originalUrl">{{ truncate(link.originalUrl) }}</p>
+
+            <div class="url-card__footer">
+              <span class="url-card__date">{{ formatDate(link.createdAt) }}</span>
+              <div class="url-card__actions">
+                <button
+                  class="url-card__action"
+                  [class.url-card__action--copied]="copiedId() === link.id"
+                  (click)="copyUrl(link.shortCode, link.id)"
+                  [attr.aria-label]="'Copy ' + shortUrl(link.shortCode)"
+                >
+                  @if (copiedId() === link.id) {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Copied
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                  }
+                </button>
+                <a routerLink="/dashboard/analytics" class="url-card__action" aria-label="View analytics">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Analytics
+                </a>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Anonymous session links -->
+    @if (!loading() && !isAuthenticated() && sessionLinks().length > 0) {
+      <div class="url-cards">
+        @for (link of sessionLinks(); track link.id) {
+          <div class="url-card">
+            <div class="url-card__top">
+              <span class="url-card__short">{{ shortUrl(link.shortCode) }}</span>
+            </div>
+
+            <p class="url-card__original" [title]="link.originalUrl">{{ truncate(link.originalUrl) }}</p>
+
+            <div class="url-card__footer">
+              <span class="url-card__date">{{ formatDate(link.createdAt) }}</span>
+              <div class="url-card__actions">
+                <button
+                  class="url-card__action"
+                  [class.url-card__action--copied]="copiedId() === link.id"
+                  (click)="copyUrl(link.shortCode, link.id)"
+                  [attr.aria-label]="'Copy ' + shortUrl(link.shortCode)"
+                >
+                  @if (copiedId() === link.id) {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Copied
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</section>

@@ -1,0 +1,62 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Account Settings</h1>
+    <p class="page-subtitle">Manage your profile and account preferences.</p>
+  </div>
+</div>
+
+<div class="settings-content">
+
+  <!-- ── Profile Information ─────────────────────────────────────────── -->
+  <div class="settings-card">
+    <div class="card-header">
+      <h2 class="card-title">Profile Information</h2>
+    </div>
+    <div class="profile-info">
+      <div class="profile-avatar">
+        <span>{{ (user()?.name || user()?.email || '?').charAt(0).toUpperCase() }}</span>
+      </div>
+      <div class="profile-fields">
+        <div class="field-row">
+          <span class="field-label">Full Name</span>
+          <span class="field-value">{{ user()?.name || '—' }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Email Address</span>
+          <span class="field-value">{{ user()?.email || '—' }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Account ID</span>
+          <span class="field-value field-value--mono">{{ user()?.id || '—' }}</span>
+        </div>
+      </div>
+    </div>
+    <p class="help-text" style="margin-top:var(--space-4)">
+      Profile editing is coming soon. Contact support to update your account details.
+    </p>
+  </div>
+
+  <!-- ── Danger Zone ────────────────────────────────────────────────── -->
+  <div class="settings-card danger-zone">
+    <div class="card-header">
+      <h2 class="card-title text-error">Danger Zone</h2>
+    </div>
+    <div class="danger-content">
+      <div class="danger-row">
+        <div>
+          <p class="danger-label">Sign out of your account</p>
+          <p class="danger-desc">This will clear your session on this device.</p>
+        </div>
+        <button class="btn btn--ghost" (click)="logout()">Sign Out</button>
+      </div>
+      <div class="danger-row danger-row--destructive">
+        <div>
+          <p class="danger-label">Delete account</p>
+          <p class="danger-desc">Once deleted, all your links, analytics, and data are permanently removed. This cannot be undone.</p>
+        </div>
+        <button class="btn btn--danger" disabled title="Contact support to delete your account">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+</div>

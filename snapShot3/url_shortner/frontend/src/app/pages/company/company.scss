@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+
+
+.cta-box {
+  margin-top: var(--space-12);
+  padding: var(--space-8);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  text-align: center;
+  
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-6);
+  }
+}

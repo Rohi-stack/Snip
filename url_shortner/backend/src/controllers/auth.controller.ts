@@ -35,13 +35,13 @@ export const authController = {
   },
 
   async googleLogin(req: Request, res: Response): Promise<void> {
-    const { idToken } = req.body;
+    const { idToken, accessToken } = req.body;
 
-    if (!idToken) {
-      throw new AppError(HTTP.BAD_REQUEST, 'Google ID token is required', 'MISSING_ID_TOKEN');
+    if (!idToken && !accessToken) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Google idToken or accessToken is required', 'MISSING_GOOGLE_TOKEN');
     }
 
-    const { user, tokens } = await authService.loginWithGoogle({ idToken });
+    const { user, tokens } = await authService.loginWithGoogle({ idToken, accessToken });
 
     res.status(HTTP.OK).json({
       success: true,
