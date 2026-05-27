@@ -15,7 +15,39 @@ export const authController = {
     
     res.status(HTTP.CREATED).json({
       success: true,
+      message: 'Verification code sent to your email.',
       data: user,
+    });
+  },
+
+  async verifyOtp(req: Request, res: Response): Promise<void> {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Email and verification code are required', 'MISSING_FIELDS');
+    }
+
+    const { user, tokens } = await authService.verifyOtp(email, otp);
+
+    res.status(HTTP.OK).json({
+      success: true,
+      message: 'Email verified successfully.',
+      data: { user, tokens },
+    });
+  },
+
+  async resendOtp(req: Request, res: Response): Promise<void> {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Email is required', 'MISSING_EMAIL');
+    }
+
+    await authService.resendOtp(email);
+
+    res.status(HTTP.OK).json({
+      success: true,
+      message: 'Verification code resent successfully.',
     });
   },
 
@@ -42,6 +74,21 @@ export const authController = {
     }
 
     const { user, tokens } = await authService.loginWithGoogle({ idToken, accessToken });
+
+    res.status(HTTP.OK).json({
+      success: true,
+      data: { user, tokens },
+    });
+  },
+
+  async appleLogin(req: Request, res: Response): Promise<void> {
+    const { idToken, name } = req.body;
+
+    if (!idToken) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Apple idToken is required', 'MISSING_APPLE_TOKEN');
+    }
+
+    const { user, tokens } = await authService.loginWithApple(idToken, name);
 
     res.status(HTTP.OK).json({
       success: true,
@@ -80,7 +127,6 @@ export const authController = {
   },
 
   async getMe(req: Request, res: Response): Promise<void> {
-    // req.user is populated by requireAuth middleware
     if (!req.user) {
         throw new AppError(HTTP.UNAUTHORIZED, 'User not authenticated', 'UNAUTHORIZED');
     }
@@ -88,6 +134,17 @@ export const authController = {
     res.status(HTTP.OK).json({
       success: true,
       data: req.user,
+    });
+  },
+
+  async getConfig(_req: Request, res: Response): Promise<void> {
+    res.status(HTTP.OK).json({
+      success: true,
+      data: {
+        googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+        appleClientId: process.env.APPLE_CLIENT_ID || '',
+        appleRedirectUri: process.env.APPLE_REDIRECT_URI || '',
+      },
     });
   },
 };

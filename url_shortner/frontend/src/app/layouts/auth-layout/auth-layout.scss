@@ -1,3 +1,74 @@
+// ── Auth Layout – Snip SaaS ──────────────────────────────────────────────────
+// All variables defined in :host so they survive Angular's emulated
+// ViewEncapsulation. They cascade into child content via the shadow-piercing
+// behaviour of CSS custom properties (custom props always inherit).
+
+:host {
+  display: block;
+
+  // ── Spacing (8pt grid) ─────────────────────────────────────────────────
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  // ── Typography ─────────────────────────────────────────────────────────
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  // ── Effects ────────────────────────────────────────────────────────────
+  --shadow-orange:  0 0 30px rgba(249, 115, 22, 0.15);
+  --shadow-orange-ring: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  --shadow-card:    0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  // ── Radii ──────────────────────────────────────────────────────────────
+  --radius-sm:   0.375rem;
+  --radius-md:   0.625rem;
+  --radius-lg:   1rem;
+  --radius-full: 9999px;
+
+  // ── Transitions ────────────────────────────────────────────────────────
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+
+  // ── Colors (dark theme) ────────────────────────────────────────────────
+  --color-bg:            #0a0a0a;
+  --color-bg-2:          #111111;
+  --color-bg-card:       #141414;
+  --color-bg-elevated:   #1a1a1a;
+  --color-border:        #262626;
+  --color-border-subtle: #1f1f1f;
+
+  --color-orange:     #f97316;
+  --color-orange-dim: rgba(249, 115, 22, 0.12);
+  --color-orange-glow:rgba(249, 115, 22, 0.25);
+
+  --color-text-primary:   #f5f5f5;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted:     #525252;
+
+  --color-success: #22c55e;
+  --color-error:   #ef4444;
+
+  // ── Reset: guard against leaking global margins into our layout ────────
+  .auth-card,
+  .auth-form,
+  .form-group {
+    margin:  0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Two-column shell
+// ─────────────────────────────────────────────────────────────────────────────
 .auth-layout {
   display: flex;
   min-height: 100vh;
@@ -8,7 +79,9 @@
   }
 }
 
-// ── Left Side: Branding ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Left column – branding
+// ─────────────────────────────────────────────────────────────────────────────
 .auth-branding {
   flex: 1;
   position: relative;
@@ -20,7 +93,7 @@
   overflow: hidden;
 
   @media (max-width: 960px) {
-    display: none; // Hide completely on mobile to prioritize the form
+    display: none; // Prioritise the form on smaller viewports
   }
 }
 
@@ -35,11 +108,12 @@
   width: 100%;
 }
 
+// Logo sits at the top; a predictable margin-bottom creates breathing room
 .auth-logo {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  margin-bottom: auto; // Pushes pitch down
+  margin-bottom: var(--space-8); // ← fixed: was `auto`, now a real value
 
   svg {
     width: 44px;
@@ -48,9 +122,10 @@
   }
 }
 
+// Pitch block pushed down with margin-top; margin-bottom: 0 for clean rhythm
 .auth-pitch {
-  margin-top: var(--space-16);
-  margin-bottom: auto;
+  margin-top:    var(--space-16);
+  margin-bottom: 0;             // ← fixed: was `auto`, now 0
 }
 
 .auth-pitch__title {
@@ -59,7 +134,7 @@
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
 }
 
 .auth-pitch__desc {
@@ -107,124 +182,137 @@
   }
 }
 
+// Subtle orange glow in the bottom-left corner
 .auth-branding__glow {
   position: absolute;
   bottom: -20%;
-  left: -10%;
-  width: 80%;
+  left:   -10%;
+  width:  80%;
   height: 80%;
-  background: radial-gradient(circle at center, rgba(249, 115, 22, 0.06) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at center,
+    rgba(249, 115, 22, 0.06) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 1;
 }
 
-// ── Right Side: Main Form Area ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Right column – form
+// ─────────────────────────────────────────────────────────────────────────────
 .auth-main {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2rem 5rem;
-  // margin-bottom: 10rem;
-}
+  align-items: center;       // ← vertical center on tall screens
+  justify-content: center;   // ← horizontal center
+  padding: var(--space-12) var(--space-12) var(--space-8);
 
-@media (min-width: 961px) {
-  .auth-main {
+  @media (min-width: 961px) {
     width: 45%;
+    min-height: 100vh;
   }
-}
 
-@media (max-width: 960px) {
-  .auth-main {
+  @media (max-width: 960px) {
     width: 100%;
-    padding: 2rem;
+    padding: var(--space-12) var(--space-8) var(--space-8);
     justify-content: center;
   }
 }
 
 .auth-main__content {
   width: 100%;
-  // max-width: 400px; // Narrower for better elegance and focus
-  max-width: 480px;
-  transform: translateY(40px);
+  max-width: 440px;  // unified cap for both card and content wrapper
 }
 
-// ── Global Auth Form Styles (Shared) ────────────────────────────────────
-:host-context(.auth-layout) {
-  display: block;
-  width: 100%;
-}
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth card (rendered by child routes – login / signup / verify)
+// Because Angular's emulated encapsulation adds an attribute selector to every
+// rule in the child component's SCSS, styles defined HERE (in the layout SCSS,
+// which uses ViewEncapsulation.Emulated) are still global-class selectors and
+// will match the child DOM without any ::ng-deep. All shared card/form styles
+// live here.
+// ─────────────────────────────────────────────────────────────────────────────
 .auth-card {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 420px;
-  // margin-bottom: 10rem;
-  display: flex;
-  flex-direction: column;
-  // background-color: var(--color-bg-card);
-  // border: 1px solid var(--color-border);
-  // border-top: 2px solid rgba(249, 115, 22, 0.4); // Subtle orange top line
-  // border-radius: var(--radius-xl);
-  // padding: var(--space-10) var(--space-8);
-  // box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-
+  max-width: 440px;
 }
 
 .auth-card__header {
-  margin-bottom: var(--space-12); // Increased spacing below header
-  // text-align: center; // Center header text to match card layout
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 
 .auth-card__title {
-  font-size: 1.75rem; // slightly smaller and more balanced
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--color-text-primary);
   letter-spacing: -0.04em;
-  margin-bottom: var(--space-6); // Increased spacing between title and subtitle
+  margin-bottom: var(--space-2);
 }
 
 .auth-card__subtitle {
-  font-size: 0.9375rem; // refined subtitle text size
+  font-size: 0.9375rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
+// ── Error banner ────────────────────────────────────────────────────────────
+.auth-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: #fca5a5;
+  line-height: 1.4;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--color-error);
+  }
+}
+
+// ── Form layout ─────────────────────────────────────────────────────────────
 .auth-form {
   display: flex;
   flex-direction: column;
-  // gap: var(--space-8); // Increased breathable space between form sections
-  display: flex;
-  flex-direction: column;
+  gap: var(--space-5); // field-to-field spacing
 }
 
+// Each label+input pair
 .form-group {
-
-
   display: flex;
   flex-direction: column;
-  gap: var(--space-3); // Increased spacing between label and input
-
-  margin-bottom: 1.25rem;
+  gap: var(--space-2); // label-to-input spacing
+  margin-bottom: 0;   // gap handles all vertical rhythm
 }
 
 .form-label {
-  font-size: 0.8125rem; // refined label size
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
-// Refined Input
+// ── Input override for auth context ─────────────────────────────────────────
+// Using .auth-layout as an ancestor selector makes this higher-specificity
+// than the global `.input` rule in styles.scss without needing !important.
 .auth-layout .input {
   height: 52px;
   background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
-  padding: 0.75rem 1rem;
+  padding: 0 var(--space-4);
   font-size: 0.9375rem;
+  color: var(--color-text-primary);
   border-radius: var(--radius-md);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease; // smoother transition
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+  width: 100%;
 
   &::placeholder {
     color: var(--color-text-muted);
@@ -232,20 +320,24 @@
 
   &:focus {
     border-color: var(--color-orange);
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15); // slightly softer glow
-    outline: none;
+    box-shadow: var(--shadow-orange-ring);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
+// ── Forgot password row ─────────────────────────────────────────────────────
 .auth-forgot {
-  // display: flex;
-  // justify-content: flex-end;
-  margin-top: -0.5rem;
-  margin-bottom: 1.5rem;
-  // margin-top: calc(-1 * var(--space-4));
-  // margin-bottom: var(--space-6); // More space before primary button
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0;    // ← fixed: removed any negative margin; gap on .auth-form handles spacing
+  margin-bottom: 0;
 }
 
+// ── Links ────────────────────────────────────────────────────────────────────
 .auth-link {
   font-size: 0.875rem;
   font-weight: 500;
@@ -258,17 +350,30 @@
   }
 }
 
+// ── Submit button ────────────────────────────────────────────────────────────
+.auth-submit-btn {
+  margin-top: var(--space-2);
+}
+
+.auth-layout .btn--primary {
+  height: 48px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+// ── Divider ─────────────────────────────────────────────────────────────────
 .auth-divider {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  margin: var(--space-8) 0; // More space around divider
+  margin: var(--space-6) 0;
 }
 
 .auth-divider__line {
   flex: 1;
   height: 1px;
-  background-color: var(--color-border-subtle);
+  background-color: var(--color-border);
 }
 
 .auth-divider__text {
@@ -279,7 +384,14 @@
   letter-spacing: 0.05em;
 }
 
-// Refined Google Button
+// ── Social auth buttons ──────────────────────────────────────────────────────
+.auth-socials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  // no extra margin-top — handled by .auth-divider margin-bottom
+}
+
 .google-auth-btn {
   display: flex;
   align-items: center;
@@ -289,15 +401,24 @@
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   font-weight: 600;
-  height: 44px; // refined height
-  font-size: 0.9375rem; // refined font size
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  height: 48px;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  width: 100%;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color     var(--transition-fast),
+    color            var(--transition-fast);
 
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: #333;
+  }
 
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.03);
-    border-color: var(--color-border-subtle);
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   svg {
@@ -305,25 +426,163 @@
   }
 }
 
-.auth-layout .btn--primary {
-  height: 44px;
-  font-size: 0.9375rem;
-  font-weight: 600;
+.apple-auth-btn {
+  margin-top: 0; // gap on .auth-socials handles spacing
 }
 
+// ── Footer text ──────────────────────────────────────────────────────────────
 .auth-footer {
   text-align: center;
-  margin-top: var(--space-8); // More space above footer
+  margin-top: var(--space-8);
   font-size: 0.9375rem;
   color: var(--color-text-secondary);
 }
 
-// Mobile specific branding (removed completely)
-
-.w-full {
-  width: 100%;
+// ─────────────────────────────────────────────────────────────────────────────
+// OTP Verification specifics
+// ─────────────────────────────────────────────────────────────────────────────
+.auth-email-highlight {
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
-.mt-4 {
-  margin-top: var(--space-4);
+.verification-input {
+  letter-spacing: 0.25em;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  text-align: center;
+  height: 58px;
 }
+
+.resend-wrapper {
+  text-align: center;
+  margin-top: var(--space-6);
+}
+
+.resend-cooldown {
+  color: var(--color-orange);
+  font-weight: 600;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Utility helpers
+// ─────────────────────────────────────────────────────────────────────────────
+.w-full { width: 100%; }
+.mt-4   { margin-top: var(--space-4); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Spinner keyframe (used inline via style="animation:spin …")
+// ─────────────────────────────────────────────────────────────────────────────
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile (≤ 576 px) – premium glassmorphism card
+// ─────────────────────────────────────────────────────────────────────────────
+@media (max-width: 576px) {
+  .auth-main {
+    padding: var(--space-12) var(--space-4);
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .auth-main__content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .auth-card {
+    background: rgba(13, 13, 13, 0.45);
+    border: 1.5px solid var(--color-border-subtle);
+    border-top: 3px solid var(--color-orange);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-5); // ← uses space tokens, no !important needed
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), var(--shadow-orange);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    max-width: 100%;
+  }
+
+  .auth-card__header {
+    margin-bottom: var(--space-6);
+  }
+
+  .auth-card__title {
+    font-size: 1.875rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .auth-card__subtitle {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .auth-form {
+    gap: var(--space-4);
+  }
+
+  .form-group {
+    gap: var(--space-2);
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .auth-layout .input {
+    height: 48px;
+    font-size: 0.9375rem;
+    background-color: rgba(26, 26, 26, 0.6);
+  }
+
+  .verification-input {
+    height: 54px;
+  }
+
+  .auth-layout .btn--primary,
+  .google-auth-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-socials {
+    gap: var(--space-3);
+  }
+
+  .auth-divider {
+    margin: var(--space-5) 0;
+  }
+
+  .auth-footer {
+    margin-top: var(--space-6);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEBUG – uncomment to visualise layout box boundaries in DevTools
+// ─────────────────────────────────────────────────────────────────────────────
+// .auth-card    { outline: 1px solid red; }
+// .auth-form    { outline: 1px solid blue; }
+// .form-group   { outline: 1px solid green; }
+// .auth-socials { outline: 1px solid purple; }

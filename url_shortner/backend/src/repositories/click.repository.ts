@@ -13,6 +13,9 @@ export const clickRepository = {
           ipAddress: input.ipAddress,
           browser: input.browser,
           referrer: input.referrer,
+          os: input.os,
+          userAgent: input.userAgent,
+          deviceType: input.deviceType,
         },
       }),
       prisma.url.update({

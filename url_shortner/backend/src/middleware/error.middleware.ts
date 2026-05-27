@@ -10,12 +10,13 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
-  if (err instanceof AppError) {
+  if (err instanceof AppError || (err && typeof err === 'object' && 'statusCode' in err && 'code' in err)) {
+    const errorObj = err as any;
     const body: ApiErrorResponse = {
       success: false,
-      error: { message: err.message, code: err.code },
+      error: { message: errorObj.message, code: errorObj.code },
     };
-    res.status(err.statusCode).json(body);
+    res.status(errorObj.statusCode).json(body);
     return;
   }
 

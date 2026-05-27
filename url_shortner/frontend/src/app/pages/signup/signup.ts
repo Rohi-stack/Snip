@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { googleSignIn } from '../../core/services/google-auth.service';
+import { appleSignIn } from '../../core/services/apple-auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -20,6 +21,7 @@ export class Signup {
   password = signal('');
   loading = signal(false);
   googleLoading = signal(false);
+  appleLoading = signal(false);
   errorMsg = signal<string | null>(null);
 
   async onSubmit(event: Event): Promise<void> {
@@ -44,7 +46,7 @@ export class Signup {
 
     try {
       await this.authService.register(email, password, name || undefined);
-      this.router.navigate(['/dashboard/links']);
+      this.router.navigate(['/verify'], { queryParams: { email } });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Sign up failed. Please try again.';
       this.errorMsg.set(msg.includes('EMAIL_IN_USE') || msg.includes('already registered')
@@ -56,7 +58,7 @@ export class Signup {
   }
 
   async onGoogleSignIn(): Promise<void> {
-    if (this.googleLoading() || this.loading()) return;
+    if (this.googleLoading() || this.loading() || this.appleLoading()) return;
     this.googleLoading.set(true);
     this.errorMsg.set(null);
     try {
@@ -70,6 +72,24 @@ export class Signup {
       }
     } finally {
       this.googleLoading.set(false);
+    }
+  }
+
+  async onAppleSignIn(): Promise<void> {
+    if (this.appleLoading() || this.loading() || this.googleLoading()) return;
+    this.appleLoading.set(true);
+    this.errorMsg.set(null);
+    try {
+      const { user, tokens } = await appleSignIn();
+      this.authService.loginWithGoogleResult(user, tokens);
+      this.router.navigate(['/dashboard/links']);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Apple sign-in failed.';
+      if (!msg.includes('popup was closed') && !msg.includes('cancelled')) {
+        this.errorMsg.set(msg);
+      }
+    } finally {
+      this.appleLoading.set(false);
     }
   }
 }

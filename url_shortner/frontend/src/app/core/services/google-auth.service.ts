@@ -49,14 +49,27 @@ interface GoogleTokenResponse {
  *  - The backend rejects the token
  */
 export function googleSignIn(): Promise<GoogleTokenResponse> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (typeof google === 'undefined' || !google?.accounts?.oauth2) {
       reject(new Error('Google Identity Services is not loaded yet. Please try again.'));
       return;
     }
 
+    let resolvedClientId = GOOGLE_CLIENT_ID;
+    try {
+      const configRes = await fetch(`${BASE}/auth/config`);
+      if (configRes.ok) {
+        const configJson = await configRes.json();
+        if (configJson?.data?.googleClientId) {
+          resolvedClientId = configJson.data.googleClientId;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch dynamic Google client ID config, falling back to local constant.', e);
+    }
+
     const tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
+      client_id: resolvedClientId,
       scope: 'openid email profile',
       callback: async (response) => {
         if (response.error || !response.access_token) {

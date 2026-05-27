@@ -1,0 +1,69 @@
+<div class="auth-card">
+  <div class="auth-card__header">
+    <h1 class="auth-card__title">Verify your email</h1>
+    <p class="auth-card__subtitle">
+      We sent a 6-digit verification code to <strong class="auth-email-highlight">{{ email() }}</strong>. Please check your inbox.
+    </p>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="auth-error" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ errorMsg() }}
+    </div>
+  }
+
+  @if (successMsg()) {
+    <div class="auth-success" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      {{ successMsg() }}
+    </div>
+  }
+
+  <form class="auth-form" (submit)="onSubmit($event)">
+    <div class="form-group">
+      <label for="verification-code" class="form-label">6-digit Verification Code</label>
+      <input
+        type="text"
+        id="verification-code"
+        class="input verification-input"
+        placeholder="123456"
+        autocomplete="one-time-code"
+        maxlength="6"
+        [(ngModel)]="otpCode"
+        name="otpCode"
+        [disabled]="loading()"
+      >
+    </div>
+
+    <button type="submit" id="verify-submit" class="btn btn--primary btn--lg w-full auth-submit-btn" [disabled]="loading() || otpCode().length !== 6">
+      @if (loading()) { Verifying account… } @else { Verify account }
+    </button>
+  </form>
+
+  <div class="resend-wrapper">
+    <p class="auth-subtitle">
+      Didn't get the code?
+      @if (cooldownSeconds() > 0) {
+        <span>Resend in <strong class="resend-cooldown">{{ cooldownSeconds() }}s</strong></span>
+      } @else {
+        <button
+          type="button"
+          class="auth-link resend-btn"
+          [disabled]="resending() || loading()"
+          (click)="onResend()"
+        >
+          @if (resending()) { Resending… } @else { Request new code }
+        </button>
+      }
+    </p>
+  </div>
+
+  <p class="auth-footer">
+    Back to <a routerLink="/login" class="auth-link">Log in</a>
+  </p>
+</div>

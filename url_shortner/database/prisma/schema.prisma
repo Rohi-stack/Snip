@@ -19,6 +19,7 @@ datasource db {
 enum AuthProvider {
   LOCAL
   GOOGLE
+  APPLE
 }
 
 enum UrlStatus {
@@ -54,11 +55,17 @@ model User {
   profilePicture String?      @map("profile_picture") @db.Text
   authProvider   AuthProvider @map("auth_provider")
   googleId       String?      @unique @map("google_id")
+  appleId        String?      @unique @map("apple_id")
   passwordHash   String?      @map("password_hash") @db.Text
   stripeCustomerId String?    @unique @map("stripe_customer_id")
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  emailVerified    Boolean      @default(false) @map("email_verified")
+  verifiedAt       DateTime?    @map("verified_at") @db.Timestamptz(6)
+  otpCode          String?      @map("otp_code")
+  otpExpiresAt     DateTime?    @map("otp_expires_at") @db.Timestamptz(6)
+  otpSentAt        DateTime?    @map("otp_sent_at") @db.Timestamptz(6)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz(6)
 
   urls            Url[]
   aliases         Alias[]          @relation("AliasOwner")
@@ -135,6 +142,8 @@ model Click {
   deviceType String?  @map("device_type")
   browser    String?
   referrer   String?  @db.Text
+  os         String?  @map("os")
+  userAgent  String?  @map("user_agent") @db.Text
   clickedAt  DateTime @default(now()) @map("clicked_at") @db.Timestamptz(6)
 
   url Url @relation(fields: [urlId], references: [id], onDelete: Restrict)

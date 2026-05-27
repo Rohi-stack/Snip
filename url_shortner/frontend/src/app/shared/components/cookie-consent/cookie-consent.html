@@ -1,0 +1,44 @@
+@if (visible()) {
+  <div class="cookie-banner" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-desc">
+    <div class="cookie-banner__content">
+      <div class="cookie-banner__body">
+        <h4 id="cookie-title" class="cookie-banner__title">Cookie & Privacy Preferences</h4>
+        <p id="cookie-desc" class="cookie-banner__text">
+          Help us improve Snip with analytics and personalization while keeping your experience secure. 
+          We use cookies to secure accounts and analyze traffic.
+        </p>
+        
+        <a href="#" class="cookie-banner__learn" (click)="toggleDetails($event)">
+          {{ showDetails() ? 'Hide preferences' : 'Customize preferences' }}
+        </a>
+
+        @if (showDetails()) {
+          <div class="cookie-banner__details">
+            <div class="cookie-category">
+              <div class="cookie-category__header">
+                <span class="cookie-category__name">ESSENTIAL <span class="cookie-category__badge">Always Active</span></span>
+              </div>
+              <p class="cookie-category__desc">Used for secure authentication sessions, API security, and processing Stripe SaaS subscription payments.</p>
+            </div>
+            
+            <div class="cookie-category">
+              <div class="cookie-category__header">
+                <span class="cookie-category__name">OPTIONAL</span>
+              </div>
+              <p class="cookie-category__desc">Enables device, OS, and browser-agent analytics logging to generate your click analytics reports.</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="cookie-banner__actions">
+        <button type="button" class="btn-consent btn-consent--ghost" (click)="acceptEssential()">
+          Essential Cookies Only
+        </button>
+        <button type="button" class="btn-consent btn-consent--primary" (click)="acceptAll()">
+          Accept All Cookies
+        </button>
+      </div>
+    </div>
+  </div>
+}

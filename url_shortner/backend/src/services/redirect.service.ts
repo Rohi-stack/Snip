@@ -2,6 +2,7 @@ import { UrlStatus } from '@prisma/client';
 import { HTTP } from '../constants/http.js';
 import { urlRepository } from '../repositories/url.repository.js';
 import { clickRepository } from '../repositories/click.repository.js';
+import { parseUserAgent } from '../utils/user-agent.js';
 import { AppError } from '../types/app-error.js';
 
 interface ProcessRedirectInput {
@@ -37,12 +38,17 @@ export const redirectService = {
       );
     }
 
-    // Phase 2: Synchronous Analytics Persistence
-    // We intentionally await this to ensure strong transactional consistency.
+    // Parse User Agent to extract browser, OS, and device class
+    const parsedUa = parseUserAgent(input.userAgent);
+
+    // Save enriched click details synchronously
     await clickRepository.recordClick({
       urlId: url.id,
       ipAddress: input.ip,
-      browser: input.userAgent,
+      browser: parsedUa.browser,
+      os: parsedUa.os,
+      deviceType: parsedUa.deviceType,
+      userAgent: input.userAgent,
       referrer: input.referrer,
     });
 

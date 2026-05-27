@@ -65,8 +65,30 @@ export class AuthService {
     });
     const json = await this._safeJson(res);
     if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
-    // After register, auto-login
-    await this.login(email, password);
+  }
+
+  async verifyOtp(email: string, otp: string): Promise<void> {
+    const res = await fetch(`${BASE}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    });
+    const json = await this._safeJson(res);
+    if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
+
+    const { user, tokens } = json.data as { user: AuthUser; tokens: StoredTokens };
+    this._user.set(user);
+    this._tokens.set(tokens);
+  }
+
+  async resendOtp(email: string): Promise<void> {
+    const res = await fetch(`${BASE}/auth/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await this._safeJson(res);
+    if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
   }
 
   async login(email: string, password: string): Promise<void> {

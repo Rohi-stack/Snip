@@ -59,6 +59,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/signup/signup').then((m) => m.Signup),
       },
+      {
+        path: 'verify',
+        loadComponent: () =>
+          import('./pages/verify/verify').then((m) => m.Verify),
+      },
     ],
   },
   

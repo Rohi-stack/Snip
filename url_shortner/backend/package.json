@@ -17,10 +17,13 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
     "google-auth-library": "^10.6.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
+    "resend": "^6.12.4",
     "stripe": "^22.1.1"
   },
   "devDependencies": {

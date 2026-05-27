@@ -24,8 +24,33 @@ export const authRepository = {
     });
   },
 
+  async findUserByAppleId(appleId: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { appleId } });
+  },
+
+  async linkAppleAccount(userId: string, appleId: string): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { appleId },
+    });
+  },
+
   async findUserById(id: string): Promise<User | null> {
     return prisma.user.findUnique({ where: { id } });
+  },
+
+  async updateUserVerificationStatus(userId: string, emailVerified: boolean, verifiedAt: Date | null): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified, verifiedAt },
+    });
+  },
+
+  async updateUserOtp(userId: string, otpCode: string | null, otpExpiresAt: Date | null, otpSentAt: Date | null): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { otpCode, otpExpiresAt, otpSentAt },
+    });
   },
 
   async createSession(userId: string, refreshTokenHash: string, expiresAt: Date): Promise<AuthSession> {
