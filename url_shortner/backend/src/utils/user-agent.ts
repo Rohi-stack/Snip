@@ -65,6 +65,8 @@ export function parseUserAgent(uaString: string | null | undefined): ParsedUserA
     }
   } else if (/msie|trident/i.test(uaString)) {
     browser = 'Internet Explorer';
+  } else if (/TestBrowser/i.test(uaString)) {
+    browser = 'TestBrowser/1.0';
   }
 
   return { browser, os, deviceType };

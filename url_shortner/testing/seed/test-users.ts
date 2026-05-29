@@ -6,9 +6,9 @@
  * PrismaClient so it can resolve @prisma/client from backend/node_modules.
  *
  * Test accounts created:
- *   free@snip.test      – Free tier, 1 link, 15 clicks
- *   starter@snip.test   – ₹2 tier (ACTIVE sub), 1 link
- *   premium@snip.test   – ₹5 tier (ACTIVE sub), 3 links, 1 alias, 120 clicks
+ *   free@dashurl.test      – Free tier, 1 link, 15 clicks
+ *   starter@dashurl.test   – ₹2 tier (ACTIVE sub), 1 link
+ *   premium@dashurl.test   – ₹5 tier (ACTIVE sub), 3 links, 1 alias, 120 clicks
  *
  * All passwords: Password123!
  */
@@ -29,7 +29,7 @@ const UrlStatus = { ACTIVE: 'ACTIVE', EXPIRED: 'EXPIRED' };
 
 async function clearTestUsers() {
   const users = await prisma.user.findMany({
-    where: { email: { in: ['free@snip.test', 'starter@snip.test', 'premium@snip.test'] } },
+    where: { email: { in: ['free@dashurl.test', 'starter@dashurl.test', 'premium@dashurl.test'] } },
     select: { id: true },
   });
   const ids = users.map(u => u.id);
@@ -58,13 +58,13 @@ async function main() {
 
   // 1. FREE USER ────────────────────────────────────────────────────────────
   const freeUser = await prisma.user.create({
-    data: { email: 'free@snip.test', name: 'Free Tester', authProvider: 'LOCAL', passwordHash: hash },
+    data: { email: 'free@dashurl.test', name: 'Free Tester', authProvider: 'LOCAL', passwordHash: hash },
   });
 
   const freeUrl = await prisma.url.create({
     data: {
       userId: freeUser.id,
-      originalUrl: 'https://producthunt.com/posts/snip-saas-url-shortener',
+      originalUrl: 'https://producthunt.com/posts/dashurl-saas-url-shortener',
       shortCode: 'free001',
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       status: 'ACTIVE',
@@ -85,12 +85,12 @@ async function main() {
       clickedAt: new Date(Date.now() - i * 3_600_000),
     })),
   });
-  console.log('  ✓ free@snip.test');
+  console.log('  ✓ free@dashurl.test');
 
   // 2. STARTER USER ─────────────────────────────────────────────────────────
   await prisma.user.create({
     data: {
-      email: 'starter@snip.test',
+      email: 'starter@dashurl.test',
       name: 'Starter Tester',
       authProvider: 'LOCAL',
       passwordHash: hash,
@@ -116,12 +116,12 @@ async function main() {
       },
     },
   });
-  console.log('  ✓ starter@snip.test');
+  console.log('  ✓ starter@dashurl.test');
 
   // 3. PREMIUM USER ─────────────────────────────────────────────────────────
   const premiumUser = await prisma.user.create({
     data: {
-      email: 'premium@snip.test',
+      email: 'premium@dashurl.test',
       name: 'Premium Tester',
       authProvider: 'LOCAL',
       passwordHash: hash,
@@ -164,7 +164,7 @@ async function main() {
     prisma.url.create({
       data: {
         userId: premiumUser.id,
-        originalUrl: 'https://docs.snip.ly/api',
+        originalUrl: 'https://docs.dashurl.in/api',
         shortCode: 'prem003',
         expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
         status: 'EXPIRED',
@@ -202,7 +202,7 @@ async function main() {
       clickedAt: new Date(Date.now() - i * 6_000_000),
     })),
   });
-  console.log('  ✓ premium@snip.test');
+  console.log('  ✓ premium@dashurl.test');
 
   console.log(`
 ✅ Seeding complete!

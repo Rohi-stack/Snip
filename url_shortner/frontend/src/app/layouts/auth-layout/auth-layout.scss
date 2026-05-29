@@ -1,4 +1,4 @@
-// ── Auth Layout – Snip SaaS ──────────────────────────────────────────────────
+// ── Auth Layout – DashURL SaaS ──────────────────────────────────────────────────
 // All variables defined in :host so they survive Angular's emulated
 // ViewEncapsulation. They cascade into child content via the shadow-piercing
 // behaviour of CSS custom properties (custom props always inherit).
@@ -115,10 +115,12 @@
   text-decoration: none;
   margin-bottom: var(--space-8); // ← fixed: was `auto`, now a real value
 
-  svg {
-    width: 44px;
-    height: 44px;
+  img, svg {
+    width: 214px;
+    height: 214px;
     flex-shrink: 0;
+    border-radius: 14px;
+    object-fit: contain;
   }
 }
 
@@ -242,6 +244,16 @@
 
 .auth-card__header {
   margin-bottom: var(--space-8);
+}
+
+.auth-card__logo-wrap {
+  display: none;
+
+  @media (max-width: 960px) {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: var(--space-6);
+  }
 }
 
 .auth-card__title {

@@ -10,6 +10,9 @@ import {
   urlRepository,
 } from '../repositories/url.repository.js';
 import { dailyUsageRepository } from '../repositories/daily-usage.repository.js';
+import { aliasRepository } from '../repositories/alias.repository.js';
+import { subscriptionService } from './subscription.service.js';
+import { RESERVED_ALIASES } from '../constants/reserved-aliases.js';
 import { prisma } from '../prisma/client.js';
 import { AppError } from '../types/app-error.js';
 import type {
@@ -23,6 +26,22 @@ import { generateShortCode } from '../utils/generate-short-code.js';
 import { normalizeUrl } from '../utils/normalize-url.js';
 import { isPrismaUniqueConstraintError } from '../utils/prisma-errors.js';
 import { isValidHttpUrl } from '../utils/validate-url.js';
+
+const ALIAS_REGEX = /^[a-z0-9-]+$/;
+const MIN_LENGTH = 4;
+const MAX_LENGTH = 30;
+
+function validateAliasFormat(alias: string): void {
+  if (alias.length < MIN_LENGTH || alias.length > MAX_LENGTH) {
+    throw new AppError(HTTP.BAD_REQUEST, `Alias must be between ${MIN_LENGTH} and ${MAX_LENGTH} characters`, 'INVALID_ALIAS_LENGTH');
+  }
+  if (!ALIAS_REGEX.test(alias)) {
+    throw new AppError(HTTP.BAD_REQUEST, 'Alias can only contain lowercase letters, numbers, and hyphens', 'INVALID_ALIAS_FORMAT');
+  }
+  if (RESERVED_ALIASES.has(alias)) {
+    throw new AppError(HTTP.FORBIDDEN, 'This alias is reserved', 'RESERVED_ALIAS');
+  }
+}
 
 const MAX_SHORT_CODE_ATTEMPTS = 5;
 
@@ -68,11 +87,12 @@ function toCreateUrlResult(
   row: PersistedUrl,
   tier: UserTier,
   maxUrlsPerDay: number,
+  customShortCode?: string,
 ): CreateUrlResult {
   return {
     id: row.id,
     originalUrl: row.originalUrl,
-    shortCode: row.shortCode,
+    shortCode: customShortCode ?? row.shortCode,
     expiresAt: row.expiresAt.toISOString(),
     status: row.status,
     tier,
@@ -99,6 +119,40 @@ export const urlService = {
         'originalUrl must be a valid http or https URL',
         'INVALID_URL_FORMAT',
       );
+    }
+
+    // Validate alias if provided
+    let aliasStr: string | undefined = undefined;
+    let existingAlias: any = null;
+    if (input.alias) {
+      if (!input.userId) {
+        throw new AppError(HTTP.UNAUTHORIZED, 'Premium subscription required to create aliases', 'PREMIUM_REQUIRED');
+      }
+
+      // Check premium entitlement
+      const isPremium = await subscriptionService.checkEntitlement(input.userId);
+      if (!isPremium) {
+        throw new AppError(HTTP.FORBIDDEN, 'Premium subscription required to create aliases', 'PREMIUM_REQUIRED');
+      }
+
+      aliasStr = input.alias.toLowerCase().trim();
+      validateAliasFormat(aliasStr);
+
+      // Verify the alias is not already taken in URL short codes space
+      const existingUrl = await urlRepository.findByShortCode(aliasStr);
+      if (existingUrl) {
+        throw new AppError(HTTP.CONFLICT, 'Alias is already taken', 'ALIAS_TAKEN');
+      }
+
+      // Verify the alias is not already taken/active in Alias space
+      existingAlias = await aliasRepository.findAlias(aliasStr);
+      if (existingAlias) {
+        const now = new Date();
+        const isReleased = existingAlias.status === 'RELEASED' && existingAlias.reuseAllowed && existingAlias.reuseAfter && existingAlias.reuseAfter < now;
+        if (!isReleased) {
+          throw new AppError(HTTP.CONFLICT, 'Alias is already taken', 'ALIAS_TAKEN');
+        }
+      }
     }
 
     const expiresAt = calculateExpiresAt(tier);
@@ -142,7 +196,31 @@ export const urlService = {
             shortCode,
           }, tx);
 
-          return toCreateUrlResult(persisted, tier, maxUrlsPerDay);
+          if (aliasStr) {
+            const nowTime = new Date();
+            if (existingAlias && existingAlias.status === 'RELEASED') {
+              await aliasRepository.updateAlias(aliasStr, {
+                currentUrlId: persisted.id,
+                status: 'ACTIVE',
+                createdByUserId: input.userId!,
+                firstUsedAt: nowTime,
+                lastUsedAt: nowTime,
+                reuseAllowed: false,
+                reuseAfter: null,
+              }, tx);
+            } else {
+              await aliasRepository.createAlias({
+                alias: aliasStr,
+                currentUrlId: persisted.id,
+                createdByUserId: input.userId!,
+                firstUsedAt: nowTime,
+                lastUsedAt: nowTime,
+                status: 'ACTIVE',
+              }, tx);
+            }
+          }
+
+          return toCreateUrlResult(persisted, tier, maxUrlsPerDay, aliasStr);
         } catch (error) {
           if (isPrismaUniqueConstraintError(error)) {
             continue;

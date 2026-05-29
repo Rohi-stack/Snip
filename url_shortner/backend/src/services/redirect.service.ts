@@ -2,6 +2,7 @@ import { UrlStatus } from '@prisma/client';
 import { HTTP } from '../constants/http.js';
 import { urlRepository } from '../repositories/url.repository.js';
 import { clickRepository } from '../repositories/click.repository.js';
+import { aliasRepository } from '../repositories/alias.repository.js';
 import { parseUserAgent } from '../utils/user-agent.js';
 import { AppError } from '../types/app-error.js';
 
@@ -16,7 +17,14 @@ export const redirectService = {
   async processRedirect(input: ProcessRedirectInput): Promise<string> {
     const { shortCode } = input;
 
-    const url = await urlRepository.findByShortCode(shortCode);
+    let url = await urlRepository.findByShortCode(shortCode);
+
+    if (!url) {
+      const alias = await aliasRepository.findAlias(shortCode);
+      if (alias && alias.status === 'ACTIVE' && alias.currentUrlId) {
+        url = await urlRepository.findById(alias.currentUrlId);
+      }
+    }
 
     if (!url) {
       throw new AppError(HTTP.NOT_FOUND, 'URL not found', 'URL_NOT_FOUND');

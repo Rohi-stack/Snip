@@ -167,7 +167,7 @@ export class CreateLinkModalComponent implements OnInit {
 
       const data = (json as ApiSuccessEnvelope<ShortenApiResponse>).data;
       this.resultShortCode.set(data.shortCode);
-      this.resultUrl.set(`snip.ly/${data.shortCode}`);
+      this.resultUrl.set(`dashurl.in/${data.shortCode}`);
       this.cardState.set('result');
 
       this.pushToSessionRecent({
@@ -242,7 +242,7 @@ export class CreateLinkModalComponent implements OnInit {
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = objectUrl;
-      anchor.download = `snip-${code}.${format}`;
+      anchor.download = `dashurl-${code}.${format}`;
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);

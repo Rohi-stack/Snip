@@ -64,6 +64,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/verify/verify').then((m) => m.Verify),
       },
+      {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./pages/reset-password/reset-password').then((m) => m.ResetPassword),
+      },
     ],
   },
   

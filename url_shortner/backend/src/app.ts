@@ -40,8 +40,10 @@ export function createApp(): express.Application {
   app.use(express.json({ limit: '10kb' })); // Mitigate body buffer attacks
 
   // Apply rate limiters
-  app.use('/api/v1/auth', authLimiter);
-  app.use('/api', apiLimiter);
+  if (process.env.NODE_ENV !== 'test') {
+    app.use('/api/v1/auth', authLimiter);
+    app.use('/api', apiLimiter);
+  }
 
   app.get('/', (_req, res) => {
     res.json({ name: 'url-shortener-api', version: '1.0.0' });

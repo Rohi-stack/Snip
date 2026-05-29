@@ -47,7 +47,7 @@ export const subscriptionService = {
             currency: 'inr',
             unit_amount: tierConfig.amount,
             product_data: {
-              name: `Snip ${tierConfig.label} Plan`,
+              name: `DashURL ${tierConfig.label} Plan`,
               description: `30-day ${tierConfig.label} subscription`,
             },
           },

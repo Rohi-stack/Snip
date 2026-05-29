@@ -65,22 +65,33 @@
 }
 
 // ── Floating & Swinging Mascot Charm ─────────────────────────────────────────
-.mascot-wrapper {
+.hanging-mascot-container {
+  position: relative;
+  width: 150px;
+  height: 250px;
   margin-bottom: var(--space-4);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height: 220px;
-}
-
-.mascot-svg {
-  animation: float 6s ease-in-out infinite;
+  transform-origin: top center;
+  animation: swing-mascot 5s ease-in-out infinite;
   will-change: transform;
 }
 
-.swinging-charm {
-  transform-origin: 70px 72px; // Hang perfectly from the connector point
-  animation: swing 4s ease-in-out infinite;
+.hanging-rope {
+  width: 2px;
+  height: 90px;
+  background: linear-gradient(to bottom, var(--color-border), var(--color-orange));
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+}
+
+.hanging-logo {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  margin-top: -2px; /* Attach directly to the hanging rope */
+  filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.5));
+  animation: float-logo 3.5s ease-in-out infinite;
   will-change: transform;
 }
 
@@ -179,27 +190,24 @@
 }
 
 // ── Hardware Accelerated Smooth Keyframe Animations ──────────────────────────
-@keyframes float {
-  0% {
-    transform: translateY(0px);
+@keyframes float-logo {
+  0%, 100% {
+    transform: translateY(-5px);
   }
   50% {
-    transform: translateY(-8px);
-  }
-  100% {
-    transform: translateY(0px);
+    transform: translateY(2px);
   }
 }
 
-@keyframes swing {
+@keyframes swing-mascot {
   0% {
-    transform: rotate(-4deg);
+    transform: rotate(-5deg);
   }
   50% {
-    transform: rotate(4deg);
+    transform: rotate(5deg);
   }
   100% {
-    transform: rotate(-4deg);
+    transform: rotate(-5deg);
   }
 }
 

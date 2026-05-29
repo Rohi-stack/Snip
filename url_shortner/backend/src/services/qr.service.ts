@@ -1,4 +1,5 @@
 import { urlRepository } from '../repositories/url.repository.js';
+import { aliasRepository } from '../repositories/alias.repository.js';
 import { subscriptionService } from '../services/subscription.service.js';
 import { generateQrCode, type QRFormat } from '../utils/generate-qr.js';
 import { AppError } from '../types/app-error.js';
@@ -7,7 +8,15 @@ import { UrlStatus } from '@prisma/client';
 
 export const qrService = {
   async getQrCode(userId: string, shortCode: string, format: QRFormat = 'png'): Promise<Buffer | string> {
-    const url = await urlRepository.findByShortCode(shortCode);
+    let url = await urlRepository.findByShortCode(shortCode);
+
+    if (!url || url.userId !== userId) {
+      const alias = await aliasRepository.findAlias(shortCode);
+      if (alias && alias.status === 'ACTIVE' && alias.currentUrlId && alias.createdByUserId === userId) {
+        url = await urlRepository.findById(alias.currentUrlId);
+      }
+    }
+
     if (!url || url.userId !== userId) {
       throw new AppError(HTTP.NOT_FOUND, 'URL not found or unauthorized', 'URL_NOT_FOUND');
     }
@@ -25,7 +34,7 @@ export const qrService = {
       throw new AppError(HTTP.FORBIDDEN, 'Premium subscription required for QR generation', 'PREMIUM_REQUIRED');
     }
 
-    const shortUrl = `https://s.com/${shortCode}`;
+    const shortUrl = `https://dashurl.in/${shortCode}`;
 
     return generateQrCode(shortUrl, format);
   }

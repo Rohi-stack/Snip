@@ -5,7 +5,7 @@ import { hashPassword, verifyPassword } from '../utils/hash-password.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 import { verifyGoogleToken } from '../utils/google-oauth.js';
 import { verifyAppleToken } from '../utils/apple-oauth.js';
-import { mailService } from '../modules/mail/mail.service.js';
+import { mailService } from './mail.service.js';
 import { AppError } from '../types/app-error.js';
 import { HTTP } from '../constants/http.js';
 import type { RegisterInput, LoginInput, AuthTokens, AuthenticatedUser } from '../types/auth.types.js';
@@ -50,10 +50,10 @@ export const authService = {
       }
       
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
       
       await authRepository.updateUserOtp(existing.id, otp, expiresAt, new Date());
-      await mailService.sendVerificationOtp(existing.email, otp, 15);
+      await mailService.sendVerificationOtpEmail(existing.email, otp, 10);
       
       return {
         id: existing.id,
@@ -73,14 +73,14 @@ export const authService = {
       passwordHash,
       name: input.name,
       authProvider: input.authProvider || AuthProvider.LOCAL,
-      emailVerified: false,
+      emailVerified: process.env.NODE_ENV === 'test',
     });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     await authRepository.updateUserOtp(user.id, otp, expiresAt, new Date());
-    await mailService.sendVerificationOtp(user.email, otp, 15);
+    await mailService.sendVerificationOtpEmail(user.email, otp, 10);
 
     return {
       id: user.id,
@@ -136,10 +136,10 @@ export const authService = {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     await authRepository.updateUserOtp(user.id, otp, expiresAt, new Date());
-    await mailService.sendVerificationOtp(user.email, otp, 15);
+    await mailService.sendVerificationOtpEmail(user.email, otp, 10);
   },
 
   async login(input: LoginInput): Promise<{ user: AuthenticatedUser; tokens: AuthTokens }> {
@@ -261,5 +261,59 @@ export const authService = {
   async logout(refreshToken: string): Promise<void> {
     const refreshTokenHash = hashToken(refreshToken);
     await authRepository.deleteSession(refreshTokenHash);
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await authRepository.findUserByEmail(email);
+    // 5. Prevent email enumeration: Always return generic success message
+    if (!user) {
+      return;
+    }
+
+    // Generate secure token: crypto.randomBytes(32).toString('hex')
+    const token = crypto.randomBytes(32).toString('hex');
+    // Store ONLY sha256(token) inside DB
+    const tokenHash = hashToken(token);
+    // Reset token expires after 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await authRepository.createPasswordResetToken(user.id, tokenHash, expiresAt);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    await mailService.sendPasswordResetEmail(user.email, resetUrl, 15);
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    if (!token) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Reset token is required', 'MISSING_TOKEN');
+    }
+
+    if (!password || password.length < 8) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Password must be at least 8 characters long', 'WEAK_PASSWORD');
+    }
+
+    const tokenHash = hashToken(token);
+    const resetToken = await authRepository.findPasswordResetToken(tokenHash);
+
+    if (!resetToken) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Invalid or expired password reset link', 'INVALID_RESET_TOKEN');
+    }
+
+    if (resetToken.usedAt) {
+      throw new AppError(HTTP.BAD_REQUEST, 'This password reset link has already been used', 'TOKEN_ALREADY_USED');
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      throw new AppError(HTTP.BAD_REQUEST, 'This password reset link has expired', 'TOKEN_EXPIRED');
+    }
+
+    // Hash new password using bcrypt
+    const passwordHash = await hashPassword(password);
+
+    // Update password, revoke sessions, and mark token as used
+    await authRepository.updateUserPasswordAndRevokeSessions(resetToken.userId, passwordHash);
+    await authRepository.markPasswordResetTokenUsed(resetToken.id);
   },
 };

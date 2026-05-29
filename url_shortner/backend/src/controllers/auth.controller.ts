@@ -70,7 +70,7 @@ export const authController = {
     const { idToken, accessToken } = req.body;
 
     if (!idToken && !accessToken) {
-      throw new AppError(HTTP.BAD_REQUEST, 'Google idToken or accessToken is required', 'MISSING_GOOGLE_TOKEN');
+      throw new AppError(HTTP.BAD_REQUEST, 'Google idToken or accessToken is required', 'MISSING_ID_TOKEN');
     }
 
     const { user, tokens } = await authService.loginWithGoogle({ idToken, accessToken });
@@ -145,6 +145,36 @@ export const authController = {
         appleClientId: process.env.APPLE_CLIENT_ID || '',
         appleRedirectUri: process.env.APPLE_REDIRECT_URI || '',
       },
+    });
+  },
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Email is required', 'MISSING_EMAIL');
+    }
+
+    await authService.forgotPassword(email);
+
+    res.status(HTTP.OK).json({
+      success: true,
+      message: 'If an account exists, a reset link has been sent.',
+    });
+  },
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      throw new AppError(HTTP.BAD_REQUEST, 'Reset token and password are required', 'MISSING_FIELDS');
+    }
+
+    await authService.resetPassword(token, password);
+
+    res.status(HTTP.OK).json({
+      success: true,
+      message: 'Password reset successfully.',
     });
   },
 };

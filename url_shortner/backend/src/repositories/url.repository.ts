@@ -8,24 +8,13 @@ import type {
   PersistedUrl,
 } from '../types/url.types.js';
 
-function toPersistedUrl(row: {
-  id: string;
-  userId: string | null;
-  originalUrl: string;
-  shortCode: string;
-  expiresAt: Date;
-  status: UrlStatus;
-  clickCount: number;
-  creatorIp: string;
-  creatorUserAgent: string | null;
-  createdAt: Date;
-  deletedAt: Date | null;
-}): PersistedUrl {
+function toPersistedUrl(row: any): PersistedUrl {
+  const activeAliasObj = row.boundAliases && row.boundAliases[0];
   return {
     id: row.id,
     userId: row.userId,
     originalUrl: row.originalUrl,
-    shortCode: row.shortCode,
+    shortCode: (activeAliasObj && activeAliasObj.status === 'ACTIVE') ? activeAliasObj.alias : row.shortCode,
     expiresAt: row.expiresAt,
     status: row.status,
     clickCount: row.clickCount,
@@ -64,6 +53,7 @@ export const urlRepository = {
   async findByShortCode(shortCode: string): Promise<PersistedUrl | null> {
     const row = await prisma.url.findUnique({
       where: { shortCode },
+      include: { boundAliases: { where: { status: 'ACTIVE' } } },
     });
 
     if (!row) return null;
@@ -73,6 +63,7 @@ export const urlRepository = {
   async findById(id: string): Promise<PersistedUrl | null> {
     const row = await prisma.url.findUnique({
       where: { id },
+      include: { boundAliases: { where: { status: 'ACTIVE' } } },
     });
 
     if (!row) return null;
@@ -91,6 +82,7 @@ export const urlRepository = {
     const [rows, total] = await prisma.$transaction([
       prisma.url.findMany({
         where,
+        include: { boundAliases: { where: { status: 'ACTIVE' } } },
         orderBy: { createdAt: 'desc' },
         skip: opts.skip ?? 0,
         take: opts.take ?? 20,
@@ -108,6 +100,7 @@ export const urlRepository = {
     const updated = await prisma.url.update({
       where: { id },
       data: { deletedAt: new Date(), status: UrlStatus.EXPIRED },
+      include: { boundAliases: { where: { status: 'ACTIVE' } } },
     });
 
     return toPersistedUrl(updated);

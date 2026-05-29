@@ -4,12 +4,11 @@
       <div class="cookie-banner__body">
         <h4 id="cookie-title" class="cookie-banner__title">Cookie & Privacy Preferences</h4>
         <p id="cookie-desc" class="cookie-banner__text">
-          Help us improve Snip with analytics and personalization while keeping your experience secure. 
-          We use cookies to secure accounts and analyze traffic.
+          We use essential cookies to keep DashURL secure and analytics cookies to improve your experience.
         </p>
         
         <a href="#" class="cookie-banner__learn" (click)="toggleDetails($event)">
-          {{ showDetails() ? 'Hide preferences' : 'Customize preferences' }}
+          {{ showDetails() ? 'Hide preferences' : 'Customize Preferences' }}
         </a>
 
         @if (showDetails()) {
@@ -33,10 +32,10 @@
 
       <div class="cookie-banner__actions">
         <button type="button" class="btn-consent btn-consent--ghost" (click)="acceptEssential()">
-          Essential Cookies Only
+          Essential Only
         </button>
         <button type="button" class="btn-consent btn-consent--primary" (click)="acceptAll()">
-          Accept All Cookies
+          Accept All
         </button>
       </div>
     </div>

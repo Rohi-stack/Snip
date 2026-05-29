@@ -11,8 +11,8 @@ interface StoredTokens {
   refreshToken: string;
 }
 
-const STORAGE_KEY_TOKENS = 'snip_tokens';
-const STORAGE_KEY_USER = 'snip_user';
+const STORAGE_KEY_TOKENS = 'dashurl_tokens';
+const STORAGE_KEY_USER = 'dashurl_user';
 const BASE = '/api/v1';
 
 @Injectable({ providedIn: 'root' })
@@ -86,6 +86,26 @@ export class AuthService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
+    });
+    const json = await this._safeJson(res);
+    if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const res = await fetch(`${BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await this._safeJson(res);
+    if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    const res = await fetch(`${BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
     });
     const json = await this._safeJson(res);
     if (!res.ok) throw new Error(json?.error?.message ?? json?.message ?? `Error ${res.status}`);

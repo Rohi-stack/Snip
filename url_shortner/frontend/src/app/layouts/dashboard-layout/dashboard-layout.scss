@@ -55,14 +55,16 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-6) var(--space-6) var(--space-8);
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
 
-  svg {
-    width: 28px;
-    height: 28px;
+  img, svg {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: contain;
   }
   
   .dot { color: var(--color-orange); }

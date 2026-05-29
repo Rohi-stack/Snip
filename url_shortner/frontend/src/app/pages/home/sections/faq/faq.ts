@@ -12,7 +12,7 @@ export class FaqComponent {
 
   faqs: FaqItem[] = [
     {
-      question: 'Is Snip free to use?',
+      question: 'Is DashURL free to use?',
       answer: 'Yes! Our free tier includes up to 50 short links per month, basic click analytics, and standard short URLs. Upgrade to Pro for unlimited links, custom aliases, advanced analytics, QR code generation, and link expiry controls.',
     },
     {
@@ -21,7 +21,7 @@ export class FaqComponent {
     },
     {
       question: 'Can I use custom aliases?',
-      answer: 'Custom aliases (e.g. snip.ly/my-campaign) are available on Pro and above. Free tier links receive a randomly generated code. Aliases must be unique and between 3–32 characters.',
+      answer: 'Custom aliases (e.g. dashurl.in/my-campaign) are available on Pro and above. Free tier links receive a randomly generated code. Aliases must be unique and between 3–32 characters.',
     },
     {
       question: 'Do you support QR code downloads?',
@@ -33,7 +33,7 @@ export class FaqComponent {
     },
     {
       question: 'Who is this platform for?',
-      answer: 'Snip is built for marketers, developers, content creators, and SaaS teams who need reliable link management, real-time analytics, and clean branded URLs — without a complex enterprise setup.',
+      answer: 'DashURL is built for marketers, developers, content creators, and SaaS teams who need reliable link management, real-time analytics, and clean branded URLs — without a complex enterprise setup.',
     },
     {
       question: 'What analytics are provided?',

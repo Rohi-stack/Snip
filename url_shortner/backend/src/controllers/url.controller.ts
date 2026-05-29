@@ -15,6 +15,7 @@ export const urlController = {
       userId: req.user?.id,
       creatorIp: resolveClientIp(req),
       creatorUserAgent: req.get('user-agent') ?? null,
+      alias: typeof body.alias === 'string' ? body.alias : undefined,
     });
 
     const response: ApiSuccessResponse<CreateUrlResult> = {

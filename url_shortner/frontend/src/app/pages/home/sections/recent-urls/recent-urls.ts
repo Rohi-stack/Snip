@@ -4,7 +4,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { UrlApiService, type UrlListItem } from '../../../../services/url-api.service';
 
 /** Key used by hero component to store anonymously-created links in sessionStorage */
-export const SESSION_RECENT_URLS_KEY = 'snip_session_urls';
+export const SESSION_RECENT_URLS_KEY = 'dashurl_session_urls';
 
 export interface SessionUrl {
   id: string;
@@ -71,7 +71,7 @@ export class RecentUrlsComponent implements OnInit {
   }
 
   shortUrl(code: string): string {
-    return `snip.ly/${code}`;
+    return `dashurl.in/${code}`;
   }
 
   copyUrl(code: string, id: string): void {

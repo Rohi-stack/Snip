@@ -57,7 +57,7 @@ export class Links implements OnInit {
   }
 
   copyUrl(link: UrlListItem): void {
-    const shortUrl = `snip.ly/${link.shortCode}`;
+    const shortUrl = `dashurl.in/${link.shortCode}`;
     navigator.clipboard.writeText(shortUrl).then(() => {
       this.copiedId.set(link.id);
       setTimeout(() => this.copiedId.set(null), 2000);
@@ -65,7 +65,7 @@ export class Links implements OnInit {
   }
 
   shortUrl(link: UrlListItem): string {
-    return `snip.ly/${link.shortCode}`;
+    return `dashurl.in/${link.shortCode}`;
   }
 
   formatDate(iso: string): string {

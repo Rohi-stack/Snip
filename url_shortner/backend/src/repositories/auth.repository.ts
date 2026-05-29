@@ -75,4 +75,42 @@ export const authRepository = {
       where: { refreshTokenHash },
     });
   },
+
+  async createPasswordResetToken(userId: string, tokenHash: string, expiresAt: Date) {
+    return prisma.passwordResetToken.create({
+      data: {
+        userId,
+        tokenHash,
+        expiresAt,
+      },
+    });
+  },
+
+  async findPasswordResetToken(tokenHash: string) {
+    return prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
+    });
+  },
+
+  async markPasswordResetTokenUsed(tokenId: string) {
+    return prisma.passwordResetToken.update({
+      where: { id: tokenId },
+      data: { usedAt: new Date() },
+    });
+  },
+
+  async updateUserPasswordAndRevokeSessions(userId: string, passwordHash: string) {
+    return prisma.$transaction(async (tx) => {
+      // Revoke all sessions for this user
+      await tx.authSession.deleteMany({
+        where: { userId },
+      });
+      // Update password
+      return tx.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+    });
+  },
 };

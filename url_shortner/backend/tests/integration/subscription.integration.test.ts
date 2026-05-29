@@ -2,20 +2,37 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { testApp } from '../helpers/test-app.js';
 import { prisma } from '../../src/prisma/client.js';
-import crypto from 'crypto';
 
-vi.mock('razorpay', () => {
+// Mock stripe
+vi.mock('../../src/utils/stripe.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/stripe.js')>();
   return {
-    default: class {
-      orders = {
-        create: vi.fn().mockResolvedValue({
-          id: 'order_mock123',
-          amount: 50000,
-          currency: 'INR',
-          status: 'created',
-        })
-      };
-    }
+    ...actual,
+    stripe: {
+      checkout: {
+        sessions: {
+          create: vi.fn().mockResolvedValue({
+            id: 'cs_test_123',
+            url: 'https://checkout.stripe.com/c/pay/cs_test_123',
+          }),
+        },
+      },
+      webhooks: {
+        constructEvent: vi.fn().mockImplementation((rawBody, signature, secret) => {
+          if (signature === 'invalid_signature') {
+            throw new Error('Invalid signature');
+          }
+          if (Buffer.isBuffer(rawBody)) {
+            return JSON.parse(rawBody.toString());
+          }
+          if (typeof rawBody === 'string') {
+            return JSON.parse(rawBody);
+          }
+          return rawBody;
+        }),
+      },
+    },
+    STRIPE_WEBHOOK_SECRET: 'whsec_test_secret',
   };
 });
 
@@ -31,68 +48,73 @@ describe.sequential('Subscription Integration', () => {
     userId = login.body.data.user.id;
   });
 
-  it('should create a Razorpay order', async () => {
+  it('should create a Stripe checkout session', async () => {
     const res = await request(testApp)
-      .post('/api/v1/subscriptions/create-order')
+      .post('/api/v1/subscriptions/checkout')
       .set('Authorization', `Bearer ${userToken}`)
-      .expect(201);
-    
-    expect(res.body.data.id).toBe('order_mock123');
-    // Subscription is NOT created until webhook fires
+      .send({ tier: 'premium' })
+      .expect(200);
+
+    expect(res.body.data.url).toBe('https://checkout.stripe.com/c/pay/cs_test_123');
   });
 
   it('should verify webhook signature and activate subscription', async () => {
-    await request(testApp)
-      .post('/api/v1/subscriptions/create-order')
-      .set('Authorization', `Bearer ${userToken}`);
-      
     const payload = {
-      event: 'order.paid',
-      payload: {
-        payment: {
-          entity: {
-            id: 'pay_mock123',
-            amount: 50000,
-            currency: 'INR'
-          }
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_123',
+          metadata: {
+            userId,
+            tier: 'premium',
+          },
         },
-        order: { 
-          entity: { 
-            id: 'order_mock123',
-            notes: { userId }
-          } 
-        }
-      }
+      },
     };
-    
-    const bodyStr = JSON.stringify(payload);
-    const secret = process.env.RAZORPAY_KEY_SECRET || 'mock_key_secret';
-    const signature = crypto.createHmac('sha256', secret).update(bodyStr).digest('hex');
+
+    const rawBody = JSON.stringify(payload);
 
     await request(testApp)
       .post('/api/v1/subscriptions/webhook')
-      .set('x-razorpay-signature', signature)
-      .send(payload)
+      .set('stripe-signature', 'valid_signature')
+      .set('Content-Type', 'application/json')
+      .send(rawBody)
       .expect(200);
-      
-    const dbSub = await prisma.subscription.findUnique({ where: { razorpayPaymentId: 'pay_mock123' } });
+
+    const dbSub = await prisma.subscription.findUnique({
+      where: { stripeSessionId: 'cs_test_123' },
+    });
+    expect(dbSub).not.toBeNull();
     expect(dbSub?.status).toBe('ACTIVE');
     expect(dbSub?.expiresAt).toBeDefined();
-    
+
     // Entitlement should now be active
     const meRes = await request(testApp)
       .get('/api/v1/subscriptions/me')
       .set('Authorization', `Bearer ${userToken}`)
       .expect(200);
-      
+
     expect(meRes.body.data.isPremium).toBe(true);
+    expect(meRes.body.data.tier).toBe('Premium');
   });
 
   it('should reject invalid webhook signatures', async () => {
+    const payload = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_invalid',
+        },
+      },
+    };
+
+    const rawBody = JSON.stringify(payload);
+
     await request(testApp)
       .post('/api/v1/subscriptions/webhook')
-      .set('x-razorpay-signature', 'invalid_signature_hash')
-      .send({ event: 'order.paid' })
+      .set('stripe-signature', 'invalid_signature')
+      .set('Content-Type', 'application/json')
+      .send(rawBody)
       .expect(401);
   });
 });

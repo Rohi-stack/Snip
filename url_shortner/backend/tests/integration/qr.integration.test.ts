@@ -22,7 +22,7 @@ describe.sequential('QR Code Integration', () => {
     await prisma.subscription.create({
       data: {
         userId: premId,
-        razorpayPaymentId: `mock_pay_${Date.now()}`,
+        stripeSessionId: `mock_session_${Date.now()}`,
         amount: 50000,
         currency: 'INR',
         status: 'ACTIVE',

@@ -4,6 +4,7 @@ import type { UserTier } from '../constants/url-tier.js';
 /** Request body for POST /api/v1/urls */
 export interface CreateUrlRequestBody {
   originalUrl?: unknown;
+  alias?: unknown;
 }
 
 /** Controller → service */
@@ -13,6 +14,7 @@ export interface CreateUrlInput {
   creatorIp: string;
   creatorUserAgent?: string | null;
   userId?: string | null;
+  alias?: string;
 }
 
 /** Service → repository (persistence payload) */

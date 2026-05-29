@@ -13,7 +13,7 @@ export class CookieConsent implements OnInit {
   showDetails = signal(false);
 
   ngOnInit(): void {
-    const consent = localStorage.getItem('snip_cookie_consent');
+    const consent = localStorage.getItem('dashurl_cookie_consent');
     if (!consent) {
       // Delay showing the banner slightly for a polished loading feel
       setTimeout(() => {
@@ -23,12 +23,12 @@ export class CookieConsent implements OnInit {
   }
 
   acceptAll(): void {
-    localStorage.setItem('snip_cookie_consent', 'all');
+    localStorage.setItem('dashurl_cookie_consent', 'all');
     this.visible.set(false);
   }
 
   acceptEssential(): void {
-    localStorage.setItem('snip_cookie_consent', 'essential');
+    localStorage.setItem('dashurl_cookie_consent', 'essential');
     this.visible.set(false);
   }
 

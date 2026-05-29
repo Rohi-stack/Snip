@@ -9,6 +9,7 @@
     "postinstall": "npm run prisma:generate",
     "prisma:generate": "prisma generate --schema=../database/prisma/schema.prisma",
     "db:seed": "NODE_PATH=./node_modules npx tsx ../testing/seed/test-users.ts",
+    "db:clean": "NODE_PATH=./node_modules npx tsx ../testing/seed/clean-db.ts",
     "test": "vitest"
   },
   "dependencies": {

@@ -1,6 +1,9 @@
 <div class="auth-card">
 
   <div class="auth-card__header">
+    <div class="auth-card__logo-wrap">
+      <a href="/"><img src="assets/branding/du-logo.png" alt="DashURL Logo" class="logo-md" /></a>
+    </div>
     <h1 class="auth-card__title">Welcome back</h1>
     <p class="auth-card__subtitle">Manage your links, QR codes, and analytics.</p>
   </div>
@@ -30,7 +33,7 @@
     </div>
 
     <div class="auth-forgot">
-      <a href="#" class="auth-link">Forgot password?</a>
+      <a routerLink="/forgot-password" class="auth-link">Forgot password?</a>
     </div>
 
     <button type="submit" id="login-submit" class="btn btn--primary btn--lg w-full auth-submit-btn" [disabled]="loading()">
@@ -65,7 +68,7 @@
       }
     </button>
 
-    <button type="button" class="btn btn--ghost btn--lg w-full google-auth-btn apple-auth-btn"
+    <!-- <button type="button" class="btn btn--ghost btn--lg w-full google-auth-btn apple-auth-btn"
       [disabled]="loading() || googleLoading() || appleLoading()" (click)="onAppleSignIn()">
       @if (appleLoading()) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite">
@@ -79,7 +82,7 @@
         </svg>
         Continue with Apple
       }
-    </button>
+    </button> -->
   </div>
 
   <p class="auth-footer">

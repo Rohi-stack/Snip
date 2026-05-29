@@ -36,10 +36,18 @@
     align-items: center;
     gap: var(--space-2);
     text-decoration: none;
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--color-text-primary);
     letter-spacing: -0.03em;
+  }
+
+  &__logo-icon {
+    width: 114px;
+    height: 114px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   &__logo-dot {

@@ -81,8 +81,12 @@ export const requestSanitizer = (req: Request, _res: Response, next: NextFunctio
 export const validateUrlInput = (req: Request, _res: Response, next: NextFunction): void => {
   const { originalUrl, customSlug } = req.body;
 
-  if (!originalUrl) {
+  if (originalUrl === undefined || originalUrl === null) {
     throw new AppError(HTTP.BAD_REQUEST, 'originalUrl is required', 'MISSING_URL');
+  }
+
+  if (typeof originalUrl === 'string' && originalUrl.trim() === '') {
+    throw new AppError(HTTP.BAD_REQUEST, 'originalUrl cannot be empty', 'EMPTY_ORIGINAL_URL');
   }
 
   // Enforce size limit on URL

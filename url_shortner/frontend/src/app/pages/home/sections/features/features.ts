@@ -26,7 +26,7 @@ export class FeaturesComponent {
       id: 'alias',
       iconType: 'alias',
       title: 'Premium Aliases',
-      description: 'Create custom slugs like snip.ly/your-brand for a clean, memorable link experience.',
+      description: 'Create custom slugs like dashurl.in/your-brand for a clean, memorable link experience.',
       isPremium: true,
     },
     {

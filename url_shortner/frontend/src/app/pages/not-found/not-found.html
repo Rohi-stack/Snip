@@ -12,63 +12,17 @@
 
   <div class="not-found-content">
     
-    <!-- Branded Mascot & Broken Link chain charm -->
-    <div class="mascot-wrapper">
-      <svg width="140" height="220" viewBox="0 0 140 220" fill="none" xmlns="http://www.w3.org/2000/svg" class="mascot-svg">
-        <defs>
-          <!-- Vibrant orange gradient for the S charm -->
-          <linearGradient id="s-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f97316" />
-            <stop offset="100%" stop-color="#fbbf24" />
-          </linearGradient>
-          
-          <!-- Ambient filter glow for high-end SaaS aesthetic -->
-          <filter id="charm-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <!-- Static top chain support -->
-        <rect x="66" y="10" width="8" height="30" rx="4" stroke="#333333" stroke-width="2.5" />
-        
-        <!-- Dangling broken links and hanging connector -->
-        <path d="M 70 35 L 70 50" stroke="#f97316" stroke-width="2.5" stroke-dasharray="3 3" />
-        <rect x="62" y="46" width="16" height="26" rx="8" stroke="#f97316" stroke-width="2.5" opacity="0.8" />
-        <line x1="70" y1="72" x2="70" y2="98" stroke="#f97316" stroke-width="2" />
-
-        <!-- Dangling glowing S logo charm -->
-        <g class="swinging-charm" filter="url(#charm-glow)">
-          <!-- Modern geometric S curves -->
-          <path d="M 70 100 
-                   C 48 100, 36 112, 36 128
-                   C 36 144, 52 150, 70 155
-                   C 88 160, 104 166, 104 182
-                   C 104 198, 92 210, 70 210
-                   C 48 210, 36 198, 36 198" 
-                stroke="url(#s-grad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
-                
-          <!-- Core inner highlighting node for visual fidelity -->
-          <path d="M 70 100 
-                   C 48 100, 36 112, 36 128
-                   C 36 144, 52 150, 70 155
-                   C 88 160, 104 166, 104 182" 
-                stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.5" />
-
-          <!-- Charm core glowing eye -->
-          <circle cx="70" cy="155" r="4.5" fill="#ffffff" />
-        </g>
-      </svg>
+    <!-- Branded Mascot hanging rope & logo -->
+    <div class="hanging-mascot-container">
+      <div class="hanging-rope"></div>
+      <img src="assets/branding/du-logo.png" alt="DashURL Logo" class="hanging-logo" />
     </div>
 
     <!-- Centered Branded 404 Messages -->
     <div class="error-code">404</div>
     
-    <h1 class="error-title">Looks like this link disappeared into the void.</h1>
-    <p class="error-subtitle">Even smart links get lost sometimes.</p>
+    <h1 class="error-title">Looks like this link got shortened too much.</h1>
+    <p class="error-subtitle">This URL took a wrong turn, or this dash went nowhere into the void.</p>
 
     <!-- Contextual CTAs aligned to authenticated profile status -->
     <div class="actions-wrapper">

@@ -1,5 +1,5 @@
 // ─── Design System ──────────────────────────────────────────────────────────
-// Snip SaaS — Global Stylesheet
+// DashURL SaaS — Global Stylesheet
 // Theme: Matte black, orange-amber accents, clean typography
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -367,4 +367,29 @@ input, textarea, select {
     color: var(--color-text-primary);
     font-weight: 600;
   }
+}
+
+// ── Logo Sizing System ───────────────────────────────────────────────────────
+.logo-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo-md {
+  width: 114px;
+  height: 114px;
+  border-radius: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo-lg {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
